@@ -18,11 +18,16 @@ export function SignInForm() {
     
     setSubmitting(true);
     try {
-      // For now, show a success message
-      // In a real implementation, you'd call a Convex function to send reset email
-      toast.success("If an account with that email exists, you'll receive a password reset link.");
+      // Use Convex Auth password reset flow
+      const formData = new FormData();
+      formData.set("email", email);
+      formData.set("flow", "reset");
+      
+      await signIn("password", formData);
+      toast.success("If an account with that email exists, you'll receive a password reset code. Check the console logs for development.");
       setFlow("signIn");
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Password reset error:", error);
       toast.error("Failed to send password reset email. Please try again.");
     } finally {
       setSubmitting(false);
