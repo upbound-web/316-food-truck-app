@@ -1,0 +1,13 @@
+services:
+  coffee-app:
+    build: .
+    container_name: 316-food-truck-app
+    ports:
+      - "3202:3202"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3202"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
