@@ -33,6 +33,9 @@ export function CoffeeApp() {
   const [showNotificationDebug, setShowNotificationDebug] = useState(false);
   const [showAddedToCartPopup, setShowAddedToCartPopup] = useState(false);
   const [addedItem, setAddedItem] = useState<{name: string, size: string} | null>(null);
+  const [customizeIndex, setCustomizeIndex] = useState<number | null>(null);
+  const [customizeSize, setCustomizeSize] = useState<string>("");
+  const [customizeCustomizations, setCustomizeCustomizations] = useState<string[]>([]);
 
   const allMenuItems = useQuery(api.menu.getMenuItems, 
     selectedCategory === "all" ? {} : { category: selectedCategory }
@@ -198,6 +201,57 @@ export function CoffeeApp() {
 
   const getTotalPrice = () => {
     return cart.reduce((total, item) => total + (item.itemPrice * item.quantity), 0);
+  };
+
+  const startCustomizeItem = (index: number) => {
+    const item = cart[index];
+    setCustomizeIndex(index);
+    setCustomizeSize(item.size);
+    setCustomizeCustomizations([...item.customizations]);
+  };
+
+  const cancelCustomize = () => {
+    setCustomizeIndex(null);
+    setCustomizeSize("");
+    setCustomizeCustomizations([]);
+  };
+
+  const saveCustomization = () => {
+    if (customizeIndex === null) return;
+    
+    const cartItem = cart[customizeIndex];
+    const menuItem = menuItems?.find(item => item._id === cartItem.menuItemId);
+    if (!menuItem) return;
+
+    // Calculate new price based on updated selections
+    const basePriceForSize = customizeSize === 'Large' ? menuItem.pricePerSize.large : menuItem.pricePerSize.medium;
+    const customizationPrice = customizeCustomizations.reduce((total, customName) => {
+      const customization = menuItem.customizations.find((c: any) => c.name === customName);
+      return total + (customization?.price || 0);
+    }, 0);
+    const newPrice = basePriceForSize + customizationPrice;
+
+    // Update cart item
+    const newCart = [...cart];
+    newCart[customizeIndex] = {
+      ...cartItem,
+      size: customizeSize,
+      customizations: [...customizeCustomizations],
+      itemPrice: newPrice
+    };
+    setCart(newCart);
+    
+    // Close customize modal
+    cancelCustomize();
+    toast.success("Item updated!");
+  };
+
+  const toggleCustomizeCustomization = (customizationName: string) => {
+    setCustomizeCustomizations(prev => 
+      prev.includes(customizationName)
+        ? prev.filter(name => name !== customizationName)
+        : [...prev, customizationName]
+    );
   };
 
   const handlePlaceOrder = async () => {
@@ -541,6 +595,17 @@ export function CoffeeApp() {
                         <span> • {item.customizations.join(", ")}</span>
                       )}
                     </p>
+                    <div className="flex justify-between items-center mb-3">
+                      <button
+                        onClick={() => startCustomizeItem(index)}
+                        className="text-sm text-primary hover:text-primary-hover font-medium hover:underline"
+                      >
+                        ✏️ Customize
+                      </button>
+                      <span className="font-semibold">
+                        AUD ${(item.itemPrice * item.quantity).toFixed(2)}
+                      </span>
+                    </div>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <button
@@ -557,8 +622,8 @@ export function CoffeeApp() {
                           +
                         </button>
                       </div>
-                      <span className="font-semibold">
-                        AUD ${(item.itemPrice * item.quantity).toFixed(2)}
+                      <span className="text-sm text-gray-500">
+                        ${item.itemPrice.toFixed(2)} each
                       </span>
                     </div>
                   </div>
@@ -1084,6 +1149,137 @@ function MenuItemCard({ item, onAddToCart }: { item: any; onAddToCart: (item: an
                 </div>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Customize Item Modal */}
+      {customizeIndex !== null && customizeIndex < cart.length && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Customize {cart[customizeIndex].name}
+              </h2>
+              <button
+                onClick={cancelCustomize}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {(() => {
+              const cartItem = cart[customizeIndex];
+              const menuItem = menuItems?.find(item => item._id === cartItem.menuItemId);
+              if (!menuItem) return null;
+
+              const milkOptions = menuItem.customizations.filter((c: any) => 
+                c.name.includes("Milk") || c.name.includes("Oat") || c.name.includes("Almond") || c.name.includes("Soy")
+              );
+              const syrupOptions = menuItem.customizations.filter((c: any) => 
+                c.name.includes("Syrup") || c.name.includes("Vanilla") || c.name.includes("Caramel")
+              );
+
+              return (
+                <div className="space-y-6">
+                  {/* Size Selection */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-3 uppercase tracking-wide">☕ Size</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {["Medium", "Large"].map((size) => (
+                        <label key={size} className="flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer hover:border-primary/50 transition-all bg-white/70">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="customize-size"
+                              value={size}
+                              checked={customizeSize === size}
+                              onChange={(e) => setCustomizeSize(e.target.value)}
+                              className="w-4 h-4 text-primary focus:ring-primary"
+                            />
+                            <span className="font-medium">{size}</span>
+                          </div>
+                          <span className="text-accent font-bold">
+                            ${size === 'Large' ? menuItem.pricePerSize.large.toFixed(2) : menuItem.pricePerSize.medium.toFixed(2)}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Milk Options */}
+                  {milkOptions.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3 uppercase tracking-wide">🥛 Milk Options</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {milkOptions.map((milk: any) => (
+                          <label key={milk.name} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/70 p-3 rounded-lg border border-gray-200 hover:border-primary/30 transition-all bg-white/50">
+                            <input
+                              type="checkbox"
+                              checked={customizeCustomizations.includes(milk.name)}
+                              onChange={() => toggleCustomizeCustomization(milk.name)}
+                              className="w-4 h-4 rounded text-accent focus:ring-accent focus:ring-2"
+                            />
+                            <span className="flex-1 font-medium">
+                              {milk.name}
+                              {milk.price > 0 && (
+                                <span className="text-accent font-bold ml-2 text-xs">
+                                  +${milk.price.toFixed(2)}
+                                </span>
+                              )}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Syrup Options */}
+                  {syrupOptions.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3 uppercase tracking-wide">🍯 Syrup Options</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {syrupOptions.map((syrup: any) => (
+                          <label key={syrup.name} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/70 p-3 rounded-lg border border-gray-200 hover:border-primary/30 transition-all bg-white/50">
+                            <input
+                              type="checkbox"
+                              checked={customizeCustomizations.includes(syrup.name)}
+                              onChange={() => toggleCustomizeCustomization(syrup.name)}
+                              className="w-4 h-4 rounded text-accent focus:ring-accent focus:ring-2"
+                            />
+                            <span className="flex-1 font-medium">
+                              {syrup.name}
+                              {syrup.price > 0 && (
+                                <span className="text-accent font-bold ml-2 text-xs">
+                                  +${syrup.price.toFixed(2)}
+                                </span>
+                              )}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-6 border-t border-gray-200">
+                    <button
+                      onClick={cancelCustomize}
+                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={saveCustomization}
+                      className="flex-1 bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
