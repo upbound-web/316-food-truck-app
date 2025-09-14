@@ -12,8 +12,25 @@ export function InstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
 
+  // Helper function to detect if device is mobile
+  const isMobileDevice = () => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const mobileKeywords = ['android', 'iphone', 'ipad', 'ipod', 'mobile', 'phone'];
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isMobileUA = mobileKeywords.some(keyword => userAgent.includes(keyword));
+    const isSmallScreen = window.innerWidth <= 768; // Mobile screen width
+    
+    return isMobileUA || (isTouch && isSmallScreen);
+  };
+
   useEffect(() => {
     console.log('InstallPrompt: Component mounted');
+    
+    // Check if device is desktop - don't show install prompt on desktop
+    if (!isMobileDevice()) {
+      console.log('InstallPrompt: Desktop detected, not showing install prompt');
+      return;
+    }
     
     // Check if app is already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -24,7 +41,8 @@ export function InstallPrompt() {
       isStandalone,
       isInWebAppiOS,
       isInWebAppChrome,
-      userAgent: navigator.userAgent
+      userAgent: navigator.userAgent,
+      isMobile: isMobileDevice()
     });
     
     if (isStandalone || isInWebAppiOS || isInWebAppChrome) {
@@ -104,9 +122,13 @@ export function InstallPrompt() {
   };
 
   const handleDismiss = () => {
+    console.log('InstallPrompt: User clicked "Not now", dismissing prompt');
     setShowInstallPrompt(false);
+    setShowInstructions(false);
     // Don't show again for this session
     sessionStorage.setItem('installPromptDismissed', 'true');
+    // Clear any deferred prompt
+    setDeferredPrompt(null);
   };
 
   // Debug: Show current state
@@ -117,11 +139,13 @@ export function InstallPrompt() {
     dismissed: !!sessionStorage.getItem('installPromptDismissed')
   });
 
-  // For debugging: show a test prompt even if PWA conditions aren't met
-  const showDebugPrompt = !isInstalled && !sessionStorage.getItem('installPromptDismissed');
-
-  // Don't show if already installed or dismissed this session
+  // Don't show if already installed
   if (isInstalled) {
+    return null;
+  }
+
+  // Don't show on desktop devices
+  if (!isMobileDevice()) {
     return null;
   }
 
@@ -130,7 +154,10 @@ export function InstallPrompt() {
     return null;
   }
 
-  // Show either real prompt or debug prompt
+  // For debugging: show a test prompt even if PWA conditions aren't met (mobile only)
+  const showDebugPrompt = !isInstalled && !sessionStorage.getItem('installPromptDismissed') && isMobileDevice();
+
+  // Show either real prompt or debug prompt (mobile only)
   if (!showInstallPrompt && !showDebugPrompt) {
     return null;
   }
