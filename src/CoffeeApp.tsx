@@ -597,10 +597,16 @@ export function CoffeeApp() {
                     </p>
                     <div className="flex justify-between items-center mb-3">
                       <button
-                        onClick={() => startCustomizeItem(index)}
-                        className="text-sm text-primary hover:text-primary-hover font-medium hover:underline"
+                        onClick={() => {
+                          console.log('Customize button clicked for item:', index, item.name);
+                          startCustomizeItem(index);
+                        }}
+                        className="bg-primary hover:bg-primary-hover text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5"
                       >
-                        ✏️ Customize
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Customise
                       </button>
                       <span className="font-semibold">
                         AUD ${(item.itemPrice * item.quantity).toFixed(2)}
