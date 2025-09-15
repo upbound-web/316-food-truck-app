@@ -22,6 +22,7 @@ import type * as pushNotificationActions from "../pushNotificationActions.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as router from "../router.js";
 import type * as staff from "../staff.js";
+import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   pushNotifications: typeof pushNotifications;
   router: typeof router;
   staff: typeof staff;
+  users: typeof users;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

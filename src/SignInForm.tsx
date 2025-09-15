@@ -8,6 +8,8 @@ export function SignInForm() {
   const [flow, setFlow] = useState<"signIn" | "signUp" | "resetPassword">("signIn");
   const [submitting, setSubmitting] = useState(false);
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +130,43 @@ export function SignInForm() {
               />
             </div>
             
+            {/* Name and Phone for Sign Up */}
+            {flow === "signUp" && (
+              <>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    name="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="auth-input-field"
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    name="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="auth-input-field"
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                </div>
+              </>
+            )}
+            
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -180,23 +219,6 @@ export function SignInForm() {
           </form>
         )}
 
-        {/* Divider and anonymous sign in */}
-        {flow !== "resetPassword" && (
-          <>
-            <div className="flex items-center justify-center my-6">
-              <hr className="grow border-gray-300" />
-              <span className="mx-4 text-sm text-gray-500">or</span>
-              <hr className="grow border-gray-300" />
-            </div>
-            <button 
-              onClick={() => void signIn("anonymous")}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg border border-gray-200 transition-colors duration-200"
-              disabled={submitting}
-            >
-              Continue as Guest
-            </button>
-          </>
-        )}
       </div>
     </div>
   );

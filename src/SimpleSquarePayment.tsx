@@ -4,6 +4,7 @@ import { toast } from "sonner";
 interface SimpleSquarePaymentProps {
   amount: number;
   customerName: string;
+  customerPhone: string;
   cart: Array<{
     menuItemId: string;
     name: string;
@@ -19,6 +20,7 @@ interface SimpleSquarePaymentProps {
 export function SimpleSquarePayment({ 
   amount, 
   customerName, 
+  customerPhone,
   onPaymentSuccess, 
   onCancel 
 }: SimpleSquarePaymentProps) {
@@ -125,6 +127,7 @@ export function SimpleSquarePayment({
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Complete Your Payment</h3>
         <p className="text-sm text-gray-600 mb-2">Customer: {customerName}</p>
+        <p className="text-sm text-gray-600 mb-2">Phone: {customerPhone}</p>
         <p className="text-lg font-bold text-primary">Total: AUD ${amount.toFixed(2)}</p>
       </div>
 

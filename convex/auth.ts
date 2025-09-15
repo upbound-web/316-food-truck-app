@@ -1,6 +1,5 @@
 import { convexAuth, getAuthUserId } from "@convex-dev/auth/server";
 import { Password } from "@convex-dev/auth/providers/Password";
-import { Anonymous } from "@convex-dev/auth/providers/Anonymous";
 import { query } from "./_generated/server";
 import Resend from "@auth/core/providers/resend";
 
@@ -38,8 +37,14 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
     Password({ 
       reset: ResendPasswordReset,
-    }), 
-    Anonymous
+      profile(params) {
+        return {
+          email: params.email as string,
+          name: params.name as string,
+          phone: params.phone as string,
+        };
+      },
+    })
   ],
 });
 

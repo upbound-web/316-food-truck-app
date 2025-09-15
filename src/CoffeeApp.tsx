@@ -27,6 +27,7 @@ export function CoffeeApp() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [showCheckout, setShowCheckout] = useState(false);
   const [lastOrder, setLastOrder] = useState<CartItem[] | null>(null);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
@@ -56,6 +57,7 @@ export function CoffeeApp() {
   const isStaff = useQuery(api.staff.isCurrentUserStaff);
   const userRoles = useQuery(api.staff.getCurrentUserRoles);
   const anyAdminsExist = useQuery(api.staff.anyAdminsExist);
+  const userInfo = useQuery(api.users.getUserInfo);
   const processSquarePayment = useAction(api.payments.processSquarePayment);
   const seedMenu = useMutation(api.menu.seedMenu);
   const refreshMenu = useMutation(api.menu.refreshMenu);
@@ -86,31 +88,27 @@ export function CoffeeApp() {
     return () => window.removeEventListener('switchToOrders', handleSwitchToOrders);
   }, []);
 
-  // Load last order from localStorage on component mount
+  // Load last order from localStorage and user info from database
   useEffect(() => {
     try {
       const savedOrder = localStorage.getItem('coffeeApp_lastOrder');
-      const savedCustomerName = localStorage.getItem('coffeeApp_customerName');
       
       if (savedOrder) {
         const parsedOrder = JSON.parse(savedOrder);
         setLastOrder(parsedOrder);
-      }
-      
-      if (savedCustomerName) {
-        setCustomerName(savedCustomerName);
       }
     } catch (error) {
       console.error('Error loading saved order:', error);
     }
   }, []);
 
-  // Save customer name to localStorage when it changes
+  // Update customer name and phone when user info is loaded
   useEffect(() => {
-    if (customerName.trim()) {
-      localStorage.setItem('coffeeApp_customerName', customerName);
+    if (userInfo) {
+      setCustomerName(userInfo.name || "");
+      setCustomerPhone(userInfo.phone || "");
     }
-  }, [customerName]);
+  }, [userInfo]);
 
   // Seed menu if empty
   const handleSeedMenu = async () => {
@@ -224,7 +222,8 @@ export function CoffeeApp() {
     if (!menuItem) return;
 
     // Calculate new price based on updated selections
-    const basePriceForSize = customizeSize === 'Large' ? menuItem.pricePerSize.large : menuItem.pricePerSize.medium;
+    const sizePrice = menuItem.sizes.find((s: any) => s.name === customizeSize)?.priceModifier || 0;
+    const basePriceForSize = menuItem.basePrice + sizePrice;
     const customizationPrice = customizeCustomizations.reduce((total, customName) => {
       const customization = menuItem.customizations.find((c: any) => c.name === customName);
       return total + (customization?.price || 0);
@@ -257,6 +256,11 @@ export function CoffeeApp() {
   const handlePlaceOrder = async () => {
     if (!customerName.trim()) {
       toast.error("Please enter your name");
+      return;
+    }
+
+    if (!customerPhone.trim()) {
+      toast.error("Please enter your phone number");
       return;
     }
 
@@ -558,6 +562,7 @@ export function CoffeeApp() {
             <SimpleSquarePayment
               amount={getTotalPrice()}
               customerName={customerName}
+              customerPhone={customerPhone}
               cart={cart}
               onPaymentSuccess={handlePaymentSuccess}
               onCancel={handleCancelCheckout}
@@ -649,6 +654,25 @@ export function CoffeeApp() {
                     placeholder="Enter your name"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This can be edited if someone else is picking up your order
+                  </p>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="Enter your phone number"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    We'll use this to notify you when your order is ready
+                  </p>
                 </div>
                 
                 <div className="flex justify-between items-center mb-4">
@@ -816,37 +840,50 @@ export function CoffeeApp() {
       {/* Added to Cart Popup */}
       {showAddedToCartPopup && addedItem && (
         <div className="fixed bottom-20 left-4 right-4 z-50 sm:left-auto sm:right-4 sm:max-w-sm">
-          <div className="bg-green-500 text-white rounded-lg shadow-lg p-4 animate-slide-up">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-xl shadow-2xl border border-gray-100 p-5 animate-slide-up backdrop-blur-sm">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span className="font-medium">Added to Cart!</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 text-sm">Added to Cart!</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {addedItem.name} ({addedItem.size})
+                  {addedItem.customizations && addedItem.customizations.length > 0 && (
+                    <span className="block text-xs text-gray-500 mt-0.5">
+                      + {addedItem.customizations.length} customization{addedItem.customizations.length > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </p>
               </div>
               <button
                 onClick={() => setShowAddedToCartPopup(false)}
-                className="text-white/80 hover:text-white"
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1"
               >
-                ✕
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <p className="text-sm text-white/90 mb-3">
-              {addedItem.name} ({addedItem.size})
-            </p>
+            
             <div className="flex gap-2">
               <button
                 onClick={() => {
                   setActiveTab("cart");
                   setShowAddedToCartPopup(false);
                 }}
-                className="flex-1 bg-white text-green-600 font-medium py-2 px-3 rounded-md hover:bg-gray-100 transition-colors text-sm"
+                className="flex-1 bg-primary text-white font-medium py-2.5 px-4 rounded-lg hover:bg-primary/90 transition-all duration-200 text-sm shadow-sm flex items-center justify-center gap-2"
               >
-                Go to Cart ({cart.length})
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5L17 8m-4 5v6m0-6h4" />
+                </svg>
+                View Cart ({cart.length})
               </button>
               <button
                 onClick={() => setShowAddedToCartPopup(false)}
-                className="px-3 py-2 text-white/80 hover:text-white transition-colors text-sm"
+                className="px-4 py-2.5 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-all duration-200 text-sm rounded-lg border border-gray-200"
               >
                 Continue
               </button>
@@ -903,7 +940,10 @@ export function CoffeeApp() {
                             <span className="font-medium">{size}</span>
                           </div>
                           <span className="text-accent font-bold">
-                            ${size === 'Large' ? menuItem.pricePerSize.large.toFixed(2) : menuItem.pricePerSize.medium.toFixed(2)}
+                            ${(() => {
+                              const sizePrice = menuItem.sizes.find((s: any) => s.name === size)?.priceModifier || 0;
+                              return (menuItem.basePrice + sizePrice).toFixed(2);
+                            })()}
                           </span>
                         </label>
                       ))}
