@@ -659,21 +659,6 @@ export function CoffeeApp() {
                   </p>
                 </div>
                 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="Enter your phone number"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    We'll use this to notify you when your order is ready
-                  </p>
-                </div>
                 
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-lg font-semibold">Total:</span>
