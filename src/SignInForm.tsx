@@ -28,7 +28,7 @@ export function SignInForm() {
       formData.set("flow", "reset");
       
       await signIn("password", formData);
-      toast.success("Password reset code sent! Check your email.");
+      toast.success("Password reset code sent! Check your email and enter the code below.");
       setFlow("verifyReset");
     } catch (error: any) {
       console.error("Password reset error:", error);
@@ -55,7 +55,7 @@ export function SignInForm() {
       const formData = new FormData();
       formData.set("email", email);
       formData.set("code", resetCode);
-      formData.set("password", newPassword);
+      formData.set("newPassword", newPassword);
       formData.set("flow", "reset-verification");
       
       await signIn("password", formData);
