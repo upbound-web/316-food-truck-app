@@ -602,10 +602,7 @@ export function CoffeeApp() {
                     </p>
                     <div className="flex justify-between items-center mb-3">
                       <button
-                        onClick={() => {
-                          console.log('Customize button clicked for item:', index, item.name);
-                          startCustomizeItem(index);
-                        }}
+                        onClick={() => startCustomizeItem(index)}
                         className="bg-primary hover:bg-primary-hover text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -687,7 +684,7 @@ export function CoffeeApp() {
           <div className="flex justify-between items-center mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold">My Orders</h2>
             <div className="flex gap-2 flex-wrap">
-              {permission === 'granted' && (
+              {permission === 'granted' && userRoles?.some(role => role.role === "admin") && (
                 <>
                   <button
                     onClick={() => {
@@ -713,12 +710,15 @@ export function CoffeeApp() {
                   </button>
                 </>
               )}
-              <button
-                onClick={() => setShowNotificationDebug(true)}
-                className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium text-sm"
-              >
-                🔍 Debug Notifications
-              </button>
+              {/* Debug features only for admins */}
+              {userRoles?.some(role => role.role === "admin") && (
+                <button
+                  onClick={() => setShowNotificationDebug(true)}
+                  className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium text-sm"
+                >
+                  🔍 Debug Notifications
+                </button>
+              )}
             </div>
           </div>
           
