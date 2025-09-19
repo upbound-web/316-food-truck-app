@@ -18,18 +18,22 @@ const ResendPasswordReset = Email({
     console.log(`🐛 NODE_ENV: ${process.env.NODE_ENV}`);
     console.log(`🐛 RESEND_API_KEY exists: ${!!process.env.RESEND_API_KEY}`);
     console.log(`🐛 RESEND_FROM_EMAIL: ${process.env.RESEND_FROM_EMAIL}`);
+    console.log(`🐛 EMAIL_MODE: ${process.env.EMAIL_MODE}`);
     
-    const isDevelopment = process.env.NODE_ENV !== "production";
-    console.log(`🐛 isDevelopment: ${isDevelopment}`);
+    // Use custom EMAIL_MODE environment variable instead of NODE_ENV
+    const isDevelopment = process.env.EMAIL_MODE !== "production";
+    console.log(`🐛 isDevelopment (using EMAIL_MODE): ${isDevelopment}`);
     
-    // TEMPORARY: Force email sending for testing (bypass NODE_ENV check)
-    console.log(`🚀 FORCING PRODUCTION EMAIL SEND FOR TESTING...`);
-    
-    // Always log to console for debugging
-    console.log(`🔐 Password Reset Code for ${email}: ${token}`);
-    console.log(`🔗 Use this code to reset your password`);
+    if (isDevelopment) {
+      // In development, log to console
+      console.log(`🔐 Password Reset Code for ${email}: ${token}`);
+      console.log(`🔗 Use this code to reset your password`);
+      return;
+    }
 
-    // Now also try to send actual email via Resend
+    // In production, send actual email via Resend
+    console.log(`📧 Sending production email to ${email}...`);
+    console.log(`🔐 Reset Code: ${token}`);
     try {
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
