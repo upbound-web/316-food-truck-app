@@ -22,14 +22,17 @@ export function SignInForm() {
     
     setSubmitting(true);
     try {
+      console.log("🔄 Sending password reset request...");
       // Use Convex Auth password reset flow
       const formData = new FormData();
       formData.set("email", email);
       formData.set("flow", "reset");
       
       await signIn("password", formData);
+      console.log("✅ Password reset request successful, switching to verification...");
       toast.success("Password reset code sent! Check your email and enter the code below.");
       setFlow("verifyReset");
+      console.log("🔄 Flow set to verifyReset");
     } catch (error: any) {
       console.error("Password reset error:", error);
       toast.error("Failed to send password reset email. Please try again.");
@@ -70,6 +73,9 @@ export function SignInForm() {
       setSubmitting(false);
     }
   };
+
+  // Debug logging
+  console.log("🔍 SignInForm render - current flow:", flow);
 
   return (
     <div className="w-full max-w-md mx-auto">
