@@ -5,11 +5,13 @@ import { toast } from "sonner";
 
 export function SignInForm() {
   const { signIn } = useAuthActions();
-  const [flow, setFlow] = useState<"signIn" | "signUp" | "resetPassword">("signIn");
+  const [flow, setFlow] = useState<"signIn" | "signUp" | "resetPassword" | "verifyReset">("signIn");
   const [submitting, setSubmitting] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,11 +28,44 @@ export function SignInForm() {
       formData.set("flow", "reset");
       
       await signIn("password", formData);
-      toast.success("If an account with that email exists, you'll receive a password reset code. Check the console logs for development.");
-      setFlow("signIn");
+      toast.success("Password reset code sent! Check your email.");
+      setFlow("verifyReset");
     } catch (error: any) {
       console.error("Password reset error:", error);
       toast.error("Failed to send password reset email. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleVerifyReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetCode.trim()) {
+      toast.error("Please enter the reset code");
+      return;
+    }
+    if (!newPassword.trim() || newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+    
+    setSubmitting(true);
+    try {
+      // Complete password reset with code and new password
+      const formData = new FormData();
+      formData.set("email", email);
+      formData.set("code", resetCode);
+      formData.set("password", newPassword);
+      formData.set("flow", "reset-verification");
+      
+      await signIn("password", formData);
+      toast.success("Password reset successfully! You can now sign in.");
+      setFlow("signIn");
+      setResetCode("");
+      setNewPassword("");
+    } catch (error: any) {
+      console.error("Verify reset error:", error);
+      toast.error("Invalid code or error resetting password. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -42,14 +77,19 @@ export function SignInForm() {
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
-            {flow === "signIn" ? "Welcome Back" : flow === "signUp" ? "Create Account" : "Reset Password"}
+            {flow === "signIn" ? "Welcome Back" 
+             : flow === "signUp" ? "Create Account" 
+             : flow === "resetPassword" ? "Reset Password"
+             : "Enter Reset Code"}
           </h2>
           <p className="text-gray-600 mt-2">
             {flow === "signIn" 
               ? "Sign in to your 316 Food Truck account" 
               : flow === "signUp" 
               ? "Join 316 Food Truck today" 
-              : "Enter your email to reset your password"
+              : flow === "resetPassword"
+              ? "Enter your email to reset your password"
+              : "Check your email for the reset code"
             }
           </p>
         </div>
@@ -84,6 +124,53 @@ export function SignInForm() {
               className="w-full text-center text-sm text-primary hover:text-primary-hover font-medium"
             >
               Back to Sign In
+            </button>
+          </form>
+        ) : flow === "verifyReset" ? (
+          /* Verify Reset Code Form */
+          <form onSubmit={handleVerifyReset} className="space-y-4">
+            <div>
+              <label htmlFor="reset-code" className="block text-sm font-medium text-gray-700 mb-2">
+                Reset Code
+              </label>
+              <input
+                id="reset-code"
+                type="text"
+                value={resetCode}
+                onChange={(e) => setResetCode(e.target.value)}
+                className="auth-input-field"
+                placeholder="Enter the code from your email"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-2">
+                New Password
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="auth-input-field"
+                placeholder="Enter your new password (min. 6 characters)"
+                minLength={6}
+                required
+              />
+            </div>
+            <button 
+              type="submit" 
+              disabled={submitting}
+              className="auth-button w-full"
+            >
+              {submitting ? "Resetting..." : "Reset Password"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFlow("resetPassword")}
+              className="w-full text-center text-sm text-primary hover:text-primary-hover font-medium"
+            >
+              Back to Email Entry
             </button>
           </form>
         ) : (
