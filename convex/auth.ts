@@ -70,7 +70,7 @@ const ResendPasswordReset = Email({
       console.log(`✅ Resend response:`, result);
     } catch (error) {
       console.error("❌ FAILED to send password reset email:", error);
-      console.error("❌ Error details:", error.message);
+      console.error("❌ Error details:", error instanceof Error ? error.message : String(error));
       // Don't throw error - let it continue so user still gets console code
       console.log("⚠️ Email sending failed, but console code above can still be used");
     }
