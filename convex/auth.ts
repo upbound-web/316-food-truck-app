@@ -22,14 +22,14 @@ const ResendPasswordReset = Email({
     const isDevelopment = process.env.NODE_ENV !== "production";
     console.log(`🐛 isDevelopment: ${isDevelopment}`);
     
-    if (isDevelopment) {
-      // In development, log to console
-      console.log(`🔐 Password Reset Code for ${email}: ${token}`);
-      console.log(`🔗 Use this code to reset your password`);
-      return;
-    }
+    // TEMPORARY: Force email sending for testing (bypass NODE_ENV check)
+    console.log(`🚀 FORCING PRODUCTION EMAIL SEND FOR TESTING...`);
+    
+    // Always log to console for debugging
+    console.log(`🔐 Password Reset Code for ${email}: ${token}`);
+    console.log(`🔗 Use this code to reset your password`);
 
-    // In production, send actual email via Resend
+    // Now also try to send actual email via Resend
     try {
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -59,14 +59,20 @@ const ResendPasswordReset = Email({
 
       if (!response.ok) {
         const error = await response.text();
-        console.error("Resend API error:", error);
-        throw new Error(`Failed to send email: ${response.status}`);
+        console.error("❌ Resend API error response:", error);
+        console.error("❌ Resend API status:", response.status);
+        console.error("❌ Resend API headers:", response.headers);
+        throw new Error(`Failed to send email: ${response.status} - ${error}`);
       }
 
-      console.log(`✅ Password reset email sent to ${email}`);
+      const result = await response.json();
+      console.log(`✅ Password reset email sent successfully to ${email}`);
+      console.log(`✅ Resend response:`, result);
     } catch (error) {
-      console.error("Failed to send password reset email:", error);
-      throw error;
+      console.error("❌ FAILED to send password reset email:", error);
+      console.error("❌ Error details:", error.message);
+      // Don't throw error - let it continue so user still gets console code
+      console.log("⚠️ Email sending failed, but console code above can still be used");
     }
   },
 });
