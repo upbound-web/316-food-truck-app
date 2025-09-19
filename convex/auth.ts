@@ -4,7 +4,13 @@ import { query } from "./_generated/server";
 
 // Password reset email sending function
 async function sendPasswordResetEmail(email: string, code: string) {
+  // Debug environment variables
+  console.log(`🐛 NODE_ENV: ${process.env.NODE_ENV}`);
+  console.log(`🐛 RESEND_API_KEY exists: ${!!process.env.RESEND_API_KEY}`);
+  console.log(`🐛 RESEND_FROM_EMAIL: ${process.env.RESEND_FROM_EMAIL}`);
+  
   const isDevelopment = process.env.NODE_ENV !== "production";
+  console.log(`🐛 isDevelopment: ${isDevelopment}`);
   
   if (isDevelopment) {
     // In development, log to console
