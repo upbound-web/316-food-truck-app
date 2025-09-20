@@ -2,6 +2,7 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { TermsOfUse } from "./TermsOfUse";
 
 export function SignInForm() {
   const { signIn } = useAuthActions();
@@ -12,6 +13,8 @@ export function SignInForm() {
   const [phone, setPhone] = useState("");
   const [resetCode, setResetCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsOfUse, setShowTermsOfUse] = useState(false);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,6 +187,13 @@ export function SignInForm() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+
+              // Check terms acceptance for sign up
+              if (flow === "signUp" && !termsAccepted) {
+                toast.error("Please accept the Terms of Use to create an account");
+                return;
+              }
+
               setSubmitting(true);
               const formData = new FormData(e.target as HTMLFormElement);
               formData.set("flow", flow);
@@ -275,6 +285,30 @@ export function SignInForm() {
               />
             </div>
 
+            {/* Terms of Use acceptance for sign up */}
+            {flow === "signUp" && (
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                <label className="flex items-start gap-3 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-primary focus:ring-primary focus:ring-2"
+                  />
+                  <span className="text-gray-700">
+                    I accept the{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowTermsOfUse(true)}
+                      className="text-primary underline hover:text-primary-hover"
+                    >
+                      Terms of Use
+                    </button>
+                  </span>
+                </label>
+              </div>
+            )}
+
             {/* Forgot password link for sign in */}
             {flow === "signIn" && (
               <div className="text-right">
@@ -288,10 +322,14 @@ export function SignInForm() {
               </div>
             )}
 
-            <button 
-              type="submit" 
-              disabled={submitting}
-              className="auth-button w-full"
+            <button
+              type="submit"
+              disabled={submitting || (flow === "signUp" && !termsAccepted)}
+              className={`auth-button w-full ${
+                flow === "signUp" && !termsAccepted
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
             >
               {submitting ? "Please wait..." : (flow === "signIn" ? "Sign In" : "Create Account")}
             </button>
@@ -303,7 +341,10 @@ export function SignInForm() {
               </span>
               <button
                 type="button"
-                onClick={() => setFlow(flow === "signIn" ? "signUp" : "signIn")}
+                onClick={() => {
+                  setFlow(flow === "signIn" ? "signUp" : "signIn");
+                  setTermsAccepted(false); // Reset terms acceptance when switching flows
+                }}
                 className="text-sm text-primary hover:text-primary-hover font-medium hover:underline"
               >
                 {flow === "signIn" ? "Sign up" : "Sign in"}
@@ -313,6 +354,11 @@ export function SignInForm() {
         )}
 
       </div>
+
+      {/* Terms of Use Modal */}
+      {showTermsOfUse && (
+        <TermsOfUse onClose={() => setShowTermsOfUse(false)} />
+      )}
     </div>
   );
 }

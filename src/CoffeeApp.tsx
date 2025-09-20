@@ -14,6 +14,7 @@ import {
 } from "./NotificationService";
 import { useOrderNotifications } from "./useOrderNotifications";
 import { NotificationDebug } from "./NotificationDebug";
+import { TermsOfUse } from "./TermsOfUse";
 
 interface CartItem {
   menuItemId: Id<"menuItems">;
@@ -38,6 +39,7 @@ export function CoffeeApp() {
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showNotificationDebug, setShowNotificationDebug] = useState(false);
   const [showAddedToCartPopup, setShowAddedToCartPopup] = useState(false);
+  const [showTermsOfUse, setShowTermsOfUse] = useState(false);
   const [addedItem, setAddedItem] = useState<{
     name: string;
     size: string;
@@ -73,7 +75,6 @@ export function CoffeeApp() {
   const userInfo = useQuery(api.users.getUserInfo);
   const processSquarePayment = useAction(api.payments.processSquarePayment);
   const seedMenu = useMutation(api.menu.seedMenu);
-  const refreshMenu = useMutation(api.menu.refreshMenu);
   const loadRealMenu = useMutation(api.menu.loadRealMenu);
 
   // Initialize order notifications
@@ -134,15 +135,6 @@ export function CoffeeApp() {
     }
   };
 
-  // Refresh menu with latest items (including sugar options)
-  const handleRefreshMenu = async () => {
-    try {
-      await refreshMenu({});
-      toast.success("Menu refreshed with sugar options!");
-    } catch {
-      toast.error("Failed to refresh menu");
-    }
-  };
 
   // Load real 316 Food Truck menu
   const handleLoadRealMenu = async () => {
@@ -301,6 +293,7 @@ export function CoffeeApp() {
       toast.error("Your cart is empty");
       return;
     }
+
 
     setShowCheckout(true);
   };
@@ -966,6 +959,11 @@ export function CoffeeApp() {
       {/* Notification Debug Modal */}
       {showNotificationDebug && (
         <NotificationDebug onClose={() => setShowNotificationDebug(false)} />
+      )}
+
+      {/* Terms of Use Modal */}
+      {showTermsOfUse && (
+        <TermsOfUse onClose={() => setShowTermsOfUse(false)} />
       )}
 
       {/* Added to Cart Popup */}
