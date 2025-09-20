@@ -3,9 +3,13 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
 import { Id } from "../convex/_generated/dataModel";
+import { useStaffOrderNotifications } from "./useStaffOrderNotifications";
 
 export function StaffView() {
   const [statusFilter, setStatusFilter] = useState<string>("active");
+
+  // Enable audio notifications for new orders
+  useStaffOrderNotifications();
   
   const allOrders = useQuery(
     statusFilter === "active" 

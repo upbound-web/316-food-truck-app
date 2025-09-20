@@ -458,6 +458,10 @@ export const loadRealMenu = mutation({
           { name: "Hazelnut Syrup", price: 0.50 },
           { name: "Caramel Syrup", price: 0.50 },
           { name: "Vanilla Syrup", price: 0.50 },
+          { name: "No Sugar", price: 0 },
+          { name: "1 Sugar", price: 0 },
+          { name: "2 Sugars", price: 0 },
+          { name: "3 Sugars", price: 0 },
         ],
       },
       {
@@ -480,6 +484,10 @@ export const loadRealMenu = mutation({
           { name: "Hazelnut Syrup", price: 0.50 },
           { name: "Caramel Syrup", price: 0.50 },
           { name: "Vanilla Syrup", price: 0.50 },
+          { name: "No Sugar", price: 0 },
+          { name: "1 Sugar", price: 0 },
+          { name: "2 Sugars", price: 0 },
+          { name: "3 Sugars", price: 0 },
         ],
       },
       {
@@ -502,6 +510,10 @@ export const loadRealMenu = mutation({
           { name: "Hazelnut Syrup", price: 0.50 },
           { name: "Caramel Syrup", price: 0.50 },
           { name: "Vanilla Syrup", price: 0.50 },
+          { name: "No Sugar", price: 0 },
+          { name: "1 Sugar", price: 0 },
+          { name: "2 Sugars", price: 0 },
+          { name: "3 Sugars", price: 0 },
         ],
       },
       {
@@ -520,6 +532,10 @@ export const loadRealMenu = mutation({
           { name: "Oat Milk", price: 0.50 },
           { name: "Lactose Free Milk", price: 0.50 },
           { name: "Soy Milk", price: 0.50 },
+          { name: "No Sugar", price: 0 },
+          { name: "1 Sugar", price: 0 },
+          { name: "2 Sugars", price: 0 },
+          { name: "3 Sugars", price: 0 },
         ],
       },
       {
@@ -539,6 +555,10 @@ export const loadRealMenu = mutation({
           { name: "Oat Milk", price: 0.50 },
           { name: "Lactose Free Milk", price: 0.50 },
           { name: "Soy Milk", price: 0.50 },
+          { name: "No Sugar", price: 0 },
+          { name: "1 Sugar", price: 0 },
+          { name: "2 Sugars", price: 0 },
+          { name: "3 Sugars", price: 0 },
         ],
       },
       {
@@ -561,6 +581,10 @@ export const loadRealMenu = mutation({
           { name: "Hazelnut Syrup", price: 0.50 },
           { name: "Caramel Syrup", price: 0.50 },
           { name: "Vanilla Syrup", price: 0.50 },
+          { name: "No Sugar", price: 0 },
+          { name: "1 Sugar", price: 0 },
+          { name: "2 Sugars", price: 0 },
+          { name: "3 Sugars", price: 0 },
         ],
       },
       {
@@ -580,6 +604,10 @@ export const loadRealMenu = mutation({
           { name: "Oat Milk", price: 0.50 },
           { name: "Lactose Free Milk", price: 0.50 },
           { name: "Soy Milk", price: 0.50 },
+          { name: "No Sugar", price: 0 },
+          { name: "1 Sugar", price: 0 },
+          { name: "2 Sugars", price: 0 },
+          { name: "3 Sugars", price: 0 },
         ],
       },
       {
@@ -602,6 +630,10 @@ export const loadRealMenu = mutation({
           { name: "Hazelnut Syrup", price: 0.50 },
           { name: "Caramel Syrup", price: 0.50 },
           { name: "Vanilla Syrup", price: 0.50 },
+          { name: "No Sugar", price: 0 },
+          { name: "1 Sugar", price: 0 },
+          { name: "2 Sugars", price: 0 },
+          { name: "3 Sugars", price: 0 },
         ],
       },
       {
@@ -624,6 +656,10 @@ export const loadRealMenu = mutation({
           { name: "Hazelnut Syrup", price: 0.50 },
           { name: "Caramel Syrup", price: 0.50 },
           { name: "Vanilla Syrup", price: 0.50 },
+          { name: "No Sugar", price: 0 },
+          { name: "1 Sugar", price: 0 },
+          { name: "2 Sugars", price: 0 },
+          { name: "3 Sugars", price: 0 },
         ],
       },
       {
@@ -672,5 +708,47 @@ export const updateMenuItemImage = mutation({
     });
 
     return `Updated ${args.itemName} image to ${args.imageName}`;
+  },
+});
+
+// Add sugar options to all hot coffee items that don't have them
+export const addSugarOptionsToHotCoffee = mutation({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    const sugarOptions = [
+      { name: "No Sugar", price: 0 },
+      { name: "1 Sugar", price: 0 },
+      { name: "2 Sugars", price: 0 },
+      { name: "3 Sugars", price: 0 },
+    ];
+
+    // Get all coffee category items (hot coffee items)
+    const coffeeItems = await ctx.db
+      .query("menuItems")
+      .filter((q) => q.eq(q.field("category"), "coffee"))
+      .collect();
+
+    let updatedCount = 0;
+
+    for (const item of coffeeItems) {
+      // Check if the item already has sugar options
+      const hasSugarOptions = item.customizations.some((customization: any) =>
+        customization.name.includes("Sugar")
+      );
+
+      if (!hasSugarOptions) {
+        // Add sugar options to the existing customizations
+        const updatedCustomizations = [...item.customizations, ...sugarOptions];
+        
+        await ctx.db.patch(item._id, {
+          customizations: updatedCustomizations,
+        });
+        
+        updatedCount++;
+      }
+    }
+
+    return `Added sugar options to ${updatedCount} hot coffee items`;
   },
 });
