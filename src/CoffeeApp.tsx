@@ -1091,6 +1091,9 @@ export function CoffeeApp() {
                   c.name.includes("Vanilla") ||
                   c.name.includes("Caramel")
               );
+              const sugarOptions = menuItem.customizations.filter(
+                (c: any) => c.name.includes("Sugar")
+              );
 
               return (
                 <div className="space-y-6">
@@ -1195,6 +1198,42 @@ export function CoffeeApp() {
                               {syrup.price > 0 && (
                                 <span className="text-accent font-bold ml-2 text-xs">
                                   +${syrup.price.toFixed(2)}
+                                </span>
+                              )}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sugar Options */}
+                  {sugarOptions.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-3 uppercase tracking-wide">
+                        🍯 Sugar Level
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {sugarOptions.map((sugar: any) => (
+                          <label
+                            key={sugar.name}
+                            className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/70 p-3 rounded-lg border border-gray-200 hover:border-primary/30 transition-all bg-white/50"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={customizeCustomizations.includes(
+                                sugar.name
+                              )}
+                              onChange={() =>
+                                toggleCustomizeCustomization(sugar.name)
+                              }
+                              className="w-4 h-4 rounded text-accent focus:ring-accent focus:ring-2"
+                            />
+                            <span className="flex-1 font-medium">
+                              {sugar.name}
+                              {sugar.price > 0 && (
+                                <span className="text-accent font-bold ml-2 text-xs">
+                                  +${sugar.price.toFixed(2)}
                                 </span>
                               )}
                             </span>
