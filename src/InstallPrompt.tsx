@@ -154,13 +154,8 @@ export function InstallPrompt() {
     return null;
   }
 
-  // For debugging: show a test prompt even if PWA conditions aren't met (mobile only)
-  const showDebugPrompt = !isInstalled && !sessionStorage.getItem('installPromptDismissed') && isMobileDevice();
-
-  // Show either real prompt or debug prompt (mobile only), but respect manual dismissal
-  const shouldShowPrompt = (showInstallPrompt || showDebugPrompt) && !sessionStorage.getItem('installPromptDismissed');
-  
-  if (!shouldShowPrompt) {
+  // Only show if we have a real install prompt and it hasn't been dismissed
+  if (!showInstallPrompt) {
     return null;
   }
 
@@ -178,20 +173,17 @@ export function InstallPrompt() {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                {deferredPrompt ? 'Install Coffee App' : '☕ Add to Home Screen'}
+                Install Coffee App
               </h3>
               <p className="text-xs text-gray-600 mb-3">
-                {deferredPrompt 
-                  ? 'Get faster access and order coffee with one tap from your home screen!'
-                  : 'Install this app for quick access to order coffee anytime! Works like a regular app on your phone.'
-                }
+                Get faster access and order coffee with one tap from your home screen!
               </p>
               <div className="flex gap-2">
                 <button
-                  onClick={deferredPrompt ? handleInstallClick : () => setShowInstructions(true)}
+                  onClick={handleInstallClick}
                   className="flex-1 bg-primary text-white text-sm font-medium py-2 px-3 rounded-md hover:bg-primary-hover transition-colors"
                 >
-                  {deferredPrompt ? 'Install' : 'How to Install'}
+                  Install
                 </button>
                 <button
                   onClick={handleDismiss}
