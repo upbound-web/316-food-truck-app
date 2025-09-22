@@ -157,8 +157,10 @@ export function InstallPrompt() {
   // For debugging: show a test prompt even if PWA conditions aren't met (mobile only)
   const showDebugPrompt = !isInstalled && !sessionStorage.getItem('installPromptDismissed') && isMobileDevice();
 
-  // Show either real prompt or debug prompt (mobile only)
-  if (!showInstallPrompt && !showDebugPrompt) {
+  // Show either real prompt or debug prompt (mobile only), but respect manual dismissal
+  const shouldShowPrompt = (showInstallPrompt || showDebugPrompt) && !sessionStorage.getItem('installPromptDismissed');
+  
+  if (!shouldShowPrompt) {
     return null;
   }
 
