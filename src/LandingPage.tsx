@@ -26,6 +26,15 @@ export function LandingPage() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
+        {/* Background image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url(/header_image.jpg)'
+          }}
+        ></div>
+        {/* Background overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/60"></div>
         {/* Background decoration */}
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full -translate-y-48 translate-x-48"></div>
@@ -33,21 +42,23 @@ export function LandingPage() {
         
         <div className="relative container mx-auto px-4 py-16 sm:py-24">
           <div className="max-w-4xl mx-auto text-center">
-            {/* Coffee Icon */}
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-8 shadow-lg">
-              <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M2,21V19H20V21H2M20,8V5H18V8H20M20,3A2,2 0 0,1 22,5V8A2,2 0 0,1 20,10H18V13A4,4 0 0,1 14,17H8A4,4 0 0,1 4,13V3H20M16,5H6V13A2,2 0 0,0 8,15H14A2,2 0 0,0 16,13V5Z" />
-              </svg>
+            {/* App Icon */}
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-8 shadow-lg border-4 border-white/20">
+              <img 
+                src="/apple-touch-icon.png" 
+                alt="316 The Food Truck" 
+                className="w-12 h-12 rounded-lg"
+              />
             </div>
 
             {/* Main Headlines */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
               Order From{" "}
-              <span className="text-primary">316 The Food Truck</span>{" "}
+              <span className="text-yellow-300 drop-shadow-lg">316 The Food Truck</span>{" "}
               Online
             </h1>
             
-            <p className="text-xl sm:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl sm:text-2xl text-white mb-8 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
               Skip the line and order your favorite coffee and food ahead of time. 
               Perfect for busy lifestyles - order anywhere, anytime!
             </p>
@@ -56,34 +67,34 @@ export function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <button
                 onClick={() => setShowSignIn(true)}
-                className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-white font-semibold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
+                className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-white font-semibold py-4 px-8 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-200 text-lg border-2 border-white/20"
               >
                 Start Ordering Now
               </button>
               <button
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold py-4 px-8 rounded-lg transition-all duration-200 text-lg"
+                className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-primary font-semibold py-4 px-8 rounded-lg transition-all duration-200 text-lg shadow-lg"
               >
                 Learn More
               </button>
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 text-gray-500 text-sm">
+            <div className="flex flex-wrap justify-center items-center gap-8 text-white text-sm drop-shadow-sm">
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-green-300 drop-shadow-sm" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 Skip the queue
               </div>
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-green-300 drop-shadow-sm" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 Order on the go
               </div>
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-green-300 drop-shadow-sm" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 Secure payments
@@ -165,7 +176,7 @@ export function LandingPage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {/* Menu Item 1 */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="bg-stone-50/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-stone-200/40">
               <div className="h-48 bg-gradient-to-br from-orange-200 to-yellow-200 flex items-center justify-center">
                 <svg className="w-16 h-16 text-primary" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M2,21V19H20V21H2M20,8V5H18V8H20M20,3A2,2 0 0,1 22,5V8A2,2 0 0,1 20,10H18V13A4,4 0 0,1 14,17H8A4,4 0 0,1 4,13V3H20M16,5H6V13A2,2 0 0,0 8,15H14A2,2 0 0,0 16,13V5Z" />
@@ -178,7 +189,7 @@ export function LandingPage() {
             </div>
 
             {/* Menu Item 2 */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="bg-stone-50/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-stone-200/40">
               <div className="h-48 bg-gradient-to-br from-brown-200 to-orange-200 flex items-center justify-center">
                 <svg className="w-16 h-16 text-primary" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M5,4V7H7.5L9,10H15L16.5,7H19V4H5M3,8L5,14H19L21,8H3Z" />
@@ -191,7 +202,7 @@ export function LandingPage() {
             </div>
 
             {/* Menu Item 3 */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="bg-stone-50/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-stone-200/40">
               <div className="h-48 bg-gradient-to-br from-blue-200 to-cyan-200 flex items-center justify-center">
                 <svg className="w-16 h-16 text-primary" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z" />
@@ -204,7 +215,7 @@ export function LandingPage() {
             </div>
 
             {/* Menu Item 4 */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="bg-stone-50/70 backdrop-blur-sm rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-stone-200/40">
               <div className="h-48 bg-gradient-to-br from-green-200 to-emerald-200 flex items-center justify-center">
                 <svg className="w-16 h-16 text-primary" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" />
@@ -231,7 +242,7 @@ export function LandingPage() {
           </p>
           <button
             onClick={() => setShowSignIn(true)}
-            className="bg-white text-primary hover:bg-gray-100 font-semibold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
+            className="bg-stone-50/80 backdrop-blur-sm text-primary hover:bg-stone-100/80 font-semibold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg border border-stone-200/40"
           >
             Create Your Account
           </button>

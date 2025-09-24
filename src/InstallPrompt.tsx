@@ -154,11 +154,11 @@ export function InstallPrompt() {
     return null;
   }
 
-  // For debugging: show a test prompt even if PWA conditions aren't met (mobile only)
-  const showDebugPrompt = !isInstalled && !sessionStorage.getItem('installPromptDismissed') && isMobileDevice();
-
-  // Show either real prompt or debug prompt (mobile only)
-  if (!showInstallPrompt && !showDebugPrompt) {
+  // Show install prompt if we have deferred prompt OR if on mobile without native support
+  const shouldShowInstructions = !deferredPrompt && isMobileDevice() && !sessionStorage.getItem('installPromptDismissed');
+  
+  // Only show if we have a real install prompt OR should show instructions, and hasn't been dismissed
+  if (!showInstallPrompt && !shouldShowInstructions) {
     return null;
   }
 
@@ -193,7 +193,7 @@ export function InstallPrompt() {
                 </button>
                 <button
                   onClick={handleDismiss}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                  className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
                 >
                   Not now
                 </button>

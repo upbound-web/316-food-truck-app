@@ -29,8 +29,8 @@ function Content() {
   return (
     <>
       <Authenticated>
-        <div className="min-h-screen flex flex-col bg-gray-50">
-          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm h-16 flex justify-between items-center border-b shadow-sm px-4">
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 to-yellow-50">
+          <header className="sticky top-0 z-10 bg-stone-50/80 backdrop-blur-sm h-16 flex justify-between items-center border-b border-stone-200/40 shadow-sm px-4">
             <h2 className="text-xl font-semibold text-primary flex items-center gap-2">
               ☕ 316 The Food Truck
             </h2>
