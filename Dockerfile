@@ -15,7 +15,7 @@ RUN if [ -f "package-lock.json" ]; then npm ci --legacy-peer-deps; else npm inst
 COPY . .
 
 # Copy production environment file
-COPY .env.production .env.production
+COPY .env.production* ./
 
 # Build the application
 RUN npm run build
