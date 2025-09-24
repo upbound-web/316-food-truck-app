@@ -383,7 +383,7 @@ export function CoffeeApp() {
   }
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-orange-50 to-yellow-50">
       <div className="max-w-6xl mx-auto p-3 sm:p-4">
         {/* Navigation */}
         <div className="w-full">
@@ -458,7 +458,7 @@ export function CoffeeApp() {
                   placeholder="Search menu items..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base"
+                  className="w-full px-4 py-3 pl-10 pr-10 bg-stone-50/70 backdrop-blur-sm border border-stone-200/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-stone-300/60 text-base"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
@@ -500,7 +500,7 @@ export function CoffeeApp() {
               {/* Quick Reorder Button */}
               {lastOrder && lastOrder.length > 0 && (
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="flex-1 min-w-0 bg-gradient-to-r from-secondary/10 to-secondary/20 border border-secondary/30 rounded-lg p-3">
+                  <div className="flex-1 min-w-0 bg-stone-50/70 backdrop-blur-sm border border-stone-200/40 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-semibold text-secondary">
                         Previous Order
@@ -544,7 +544,7 @@ export function CoffeeApp() {
                       setLastOrder(null);
                       toast.success("Last order cleared");
                     }}
-                    className="px-3 py-3 text-gray-400 hover:text-gray-600 transition-colors border border-gray-300 rounded-lg flex-shrink-0"
+                    className="px-3 py-3 text-gray-400 hover:text-gray-600 transition-colors bg-stone-50/70 backdrop-blur-sm border border-stone-200/40 rounded-lg flex-shrink-0"
                     title="Clear saved order"
                   >
                     <svg
@@ -572,7 +572,7 @@ export function CoffeeApp() {
                 className={`px-3 sm:px-4 py-2 rounded-full transition-colors text-sm sm:text-base ${
                   selectedCategory === "all"
                     ? "bg-primary text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    : "bg-stone-50/70 backdrop-blur-sm border border-stone-200/40 text-gray-700 hover:bg-stone-100/70"
                 }`}
               >
                 All
@@ -584,7 +584,7 @@ export function CoffeeApp() {
                   className={`px-3 sm:px-4 py-2 rounded-full transition-colors capitalize text-sm sm:text-base ${
                     selectedCategory === category
                       ? "bg-primary text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      : "bg-stone-50/70 backdrop-blur-sm border border-stone-200/40 text-gray-700 hover:bg-stone-100/70"
                   }`}
                 >
                   {category}
@@ -616,7 +616,7 @@ export function CoffeeApp() {
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+                    className="px-4 py-2 bg-stone-50/70 backdrop-blur-sm border border-stone-200/40 text-gray-700 rounded-lg hover:bg-stone-100/70 transition-colors"
                   >
                     Clear Search
                   </button>
@@ -671,7 +671,7 @@ export function CoffeeApp() {
                       {cart.map((item, index) => (
                         <div
                           key={index}
-                          className="bg-white p-4 rounded-lg shadow border"
+                          className="bg-stone-50/70 backdrop-blur-sm p-4 rounded-lg shadow border border-stone-200/40"
                         >
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="font-semibold">{item.name}</h3>
@@ -743,7 +743,7 @@ export function CoffeeApp() {
                     </div>
 
                     {/* Order Form */}
-                    <div className="bg-white p-6 rounded-lg shadow border">
+                    <div className="bg-stone-50/70 backdrop-blur-sm p-6 rounded-lg shadow border border-stone-200/40">
                       <div className="mb-4">
                         <label className="block text-sm font-medium mb-2">
                           Name for Order
@@ -845,7 +845,7 @@ export function CoffeeApp() {
                 {userOrders.map((order) => (
                   <div
                     key={order._id}
-                    className="bg-white p-4 sm:p-6 rounded-lg shadow border"
+                    className="bg-stone-50/70 backdrop-blur-sm p-4 sm:p-6 rounded-lg shadow border border-stone-200/40"
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -969,7 +969,7 @@ export function CoffeeApp() {
       {/* Added to Cart Popup */}
       {showAddedToCartPopup && addedItem && (
         <div className="fixed bottom-20 left-4 right-4 z-50 sm:left-auto sm:right-4 sm:max-w-sm">
-          <div className="bg-white rounded-xl shadow-2xl border border-gray-100 p-5 animate-slide-up backdrop-blur-sm">
+          <div className="bg-stone-50/80 backdrop-blur-sm rounded-xl shadow-2xl border border-stone-200/40 p-5 animate-slide-up">
             <div className="flex items-start gap-3 mb-4">
               <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                 <svg
@@ -1058,7 +1058,7 @@ export function CoffeeApp() {
       {/* Customize Item Modal */}
       {customizeIndex !== null && customizeIndex < cart.length && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-stone-50/80 backdrop-blur-sm rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-stone-200/40">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
                 Customise {cart[customizeIndex].name}
@@ -1145,7 +1145,7 @@ export function CoffeeApp() {
                         {milkOptions.map((milk: any) => (
                           <label
                             key={milk.name}
-                            className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/70 p-3 rounded-lg border border-gray-200 hover:border-primary/30 transition-all bg-white/50"
+                            className="flex items-center gap-3 text-sm cursor-pointer hover:bg-stone-100/70 p-3 rounded-lg border border-stone-200/40 hover:border-primary/30 transition-all bg-stone-50/50"
                           >
                             <input
                               type="checkbox"
@@ -1181,7 +1181,7 @@ export function CoffeeApp() {
                         {syrupOptions.map((syrup: any) => (
                           <label
                             key={syrup.name}
-                            className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/70 p-3 rounded-lg border border-gray-200 hover:border-primary/30 transition-all bg-white/50"
+                            className="flex items-center gap-3 text-sm cursor-pointer hover:bg-stone-100/70 p-3 rounded-lg border border-stone-200/40 hover:border-primary/30 transition-all bg-stone-50/50"
                           >
                             <input
                               type="checkbox"
@@ -1217,7 +1217,7 @@ export function CoffeeApp() {
                         {sugarOptions.map((sugar: any) => (
                           <label
                             key={sugar.name}
-                            className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/70 p-3 rounded-lg border border-gray-200 hover:border-primary/30 transition-all bg-white/50"
+                            className="flex items-center gap-3 text-sm cursor-pointer hover:bg-stone-100/70 p-3 rounded-lg border border-stone-200/40 hover:border-primary/30 transition-all bg-stone-50/50"
                           >
                             <input
                               type="checkbox"
@@ -1349,7 +1349,7 @@ function MenuItemCard({
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-300 w-full min-w-0">
+    <div className="bg-stone-50/70 backdrop-blur-sm rounded-xl shadow-sm border border-stone-200/40 hover:shadow-lg hover:border-stone-300/60 transition-all duration-300 w-full min-w-0">
       {/* Enhanced Card Layout */}
       <div className="p-4 sm:p-6">
         {/* Product Image */}
@@ -1551,7 +1551,7 @@ function MenuItemCard({
                   {syrupOptions.map((syrup: any) => (
                     <label
                       key={syrup.name}
-                      className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/70 p-3 rounded-lg border border-gray-200 hover:border-secondary/30 transition-all bg-white/50"
+                      className="flex items-center gap-3 text-sm cursor-pointer hover:bg-stone-100/70 p-3 rounded-lg border border-stone-200/40 hover:border-secondary/30 transition-all bg-stone-50/50"
                     >
                       <input
                         type="checkbox"
@@ -1583,7 +1583,7 @@ function MenuItemCard({
                   {extraOptions.map((extra: any) => (
                     <label
                       key={extra.name}
-                      className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/70 p-3 rounded-lg border border-gray-200 hover:border-accent/30 transition-all bg-white/50"
+                      className="flex items-center gap-3 text-sm cursor-pointer hover:bg-stone-100/70 p-3 rounded-lg border border-stone-200/40 hover:border-accent/30 transition-all bg-stone-50/50"
                     >
                       <input
                         type="checkbox"
