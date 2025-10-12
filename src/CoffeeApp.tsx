@@ -1419,7 +1419,7 @@ function MenuItemCard({
 
           {/* Enhanced Size Buttons */}
           <div
-            className={`grid gap-2 sm:gap-3 w-full ${item.sizes.length === 2 ? "grid-cols-2" : item.sizes.length === 1 ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3"}`}
+            className={`grid gap-2 sm:gap-3 w-full ${item.sizes.length === 2 ? "grid-cols-2" : item.sizes.length === 1 ? "grid-cols-1" : "grid-cols-3"}`}
           >
             {item.sizes.map((size: any) => {
               const sizePrice = item.basePrice + (size.priceModifier || 0);
