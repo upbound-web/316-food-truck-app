@@ -13,7 +13,7 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 echo "📦 Building Docker image..."
-docker build -t 316-food-truck-app .
+docker-compose --env-file .env.production build
 
 if [ $? -ne 0 ]; then
     echo "❌ Docker build failed!"
@@ -21,10 +21,10 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "🛑 Stopping any existing containers..."
-docker-compose down
+docker-compose --env-file .env.production down
 
 echo "🚀 Starting application on port 3202..."
-docker-compose up -d
+docker-compose --env-file .env.production up -d
 
 if [ $? -eq 0 ]; then
     echo "✅ Application deployed successfully!"
