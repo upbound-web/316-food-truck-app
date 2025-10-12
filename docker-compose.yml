@@ -1,10 +1,18 @@
 services:
   coffee-app:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_CONVEX_URL: ${VITE_CONVEX_URL}
+        VITE_SQUARE_APPLICATION_ID: ${VITE_SQUARE_APPLICATION_ID}
+        VITE_SQUARE_LOCATION_ID: ${VITE_SQUARE_LOCATION_ID}
+        VITE_SQUARE_ENVIRONMENT: ${VITE_SQUARE_ENVIRONMENT}
     container_name: 316-food-truck-app
     ports:
       - "3202:3202"
     restart: unless-stopped
+    env_file:
+      - .env.production
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3202"]
       interval: 30s
