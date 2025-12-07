@@ -1,29 +1,118 @@
-# Coffee Ordering App
-  
-This is a project built with [Chef](https://chef.convex.dev) using [Convex](https://convex.dev) as its backend.
- You can find docs about Chef with useful information like how to deploy to production [here](https://docs.convex.dev/chef).
-  
-This project is connected to the Convex deployment named [`bold-monitor-713`](https://dashboard.convex.dev/d/bold-monitor-713).
-  
-## Project structure
-  
-The frontend code is in the `app` directory and is built with [Vite](https://vitejs.dev/).
-  
-The backend code is in the `convex` directory.
-  
-`npm run dev` will start the frontend and backend servers.
+# 316 The Food Truck - Ordering App
 
-## App authentication
+A mobile-first ordering app for **316 The Food Truck**, enabling customers to browse the menu, customize orders, and pay seamlessly with Square. Staff can manage orders in real-time with push notifications.
 
-Chef apps use [Convex Auth](https://auth.convex.dev/) with Anonymous auth for easy sign in. You may wish to change this before deploying your app.
+## Features
 
-## Developing and deploying your app
+### Customer Features
 
-Check out the [Convex docs](https://docs.convex.dev/) for more information on how to develop with Convex.
-* If you're new to Convex, the [Overview](https://docs.convex.dev/understanding/) is a good place to start
-* Check out the [Hosting and Deployment](https://docs.convex.dev/production/) docs for how to deploy your app
-* Read the [Best Practices](https://docs.convex.dev/understanding/best-practices/) guide for tips on how to improve you app further
+- 📱 **PWA Support** – Install as an app on mobile devices
+- 🍔 **Menu Browsing** – Browse items by category with search functionality
+- ✨ **Order Customization** – Choose sizes, milk options, syrups, sugar levels, and extras
+- 🛒 **Shopping Cart** – Add items, adjust quantities, and modify customizations
+- 💳 **Square Payments** – Secure payment processing via Square
+- 🔄 **Quick Reorder** – Easily reorder your previous order
+- 🔔 **Push Notifications** – Get notified when your order is ready
 
-## HTTP API
+### Staff Features
 
-User-defined http routes are defined in the `convex/router.ts` file. We split these routes into a separate file from `convex/http.ts` to allow us to prevent the LLM from modifying the authentication routes.
+- 📋 **Order Management** – View and manage incoming orders
+- 🔊 **Audio Alerts** – Hear notifications for new orders
+- ✅ **Status Updates** – Mark orders as preparing or ready for pickup
+
+### Admin Features
+
+- 👥 **Role Management** – Assign staff and admin roles to users
+- 📊 **Order Overview** – View all orders and system status
+
+## Tech Stack
+
+| Layer         | Technology                      |
+| ------------- | ------------------------------- |
+| Frontend      | React 19, Vite, Tailwind CSS    |
+| Backend       | [Convex](https://convex.dev)    |
+| Payments      | Square Web Payments SDK         |
+| Auth          | Convex Auth (Anonymous sign-in) |
+| Notifications | Web Push API                    |
+
+## Project Structure
+
+```
+├── src/                  # React frontend
+│   ├── CoffeeApp.tsx     # Main app component
+│   ├── StaffView.tsx     # Staff order management
+│   ├── AdminPanel.tsx    # Admin controls
+│   └── ...
+├── convex/               # Convex backend
+│   ├── schema.ts         # Database schema
+│   ├── menu.ts           # Menu queries/mutations
+│   ├── orders.ts         # Order management
+│   ├── payments.ts       # Square payment processing
+│   ├── staff.ts          # Staff role management
+│   └── ...
+└── public/               # Static assets
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm (or npm)
+- A [Convex](https://convex.dev) account
+- A [Square](https://developer.squareup.com) developer account
+
+### Installation
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development servers (frontend + Convex backend)
+pnpm dev
+```
+
+### Environment Variables
+
+Configure the following in your Convex dashboard:
+
+- `SQUARE_ACCESS_TOKEN` – Square API access token
+- `SQUARE_LOCATION_ID` – Square location ID
+- `SQUARE_APPLICATION_ID` – Square application ID
+- `VAPID_PUBLIC_KEY` – Web push public key
+- `VAPID_PRIVATE_KEY` – Web push private key
+
+## Deployment
+
+### Docker
+
+The app includes Docker support for containerized deployment:
+
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+```
+
+See [DOCKER-README.md](./DOCKER-README.md) for detailed deployment instructions.
+
+### Convex Production
+
+Deploy the backend to Convex production:
+
+```bash
+npx convex deploy
+```
+
+## Authentication
+
+The app uses [Convex Auth](https://auth.convex.dev/) with Anonymous authentication for frictionless sign-in. Consider implementing email or social authentication before production deployment.
+
+## Resources
+
+- [Convex Documentation](https://docs.convex.dev/)
+- [Square Web Payments SDK](https://developer.squareup.com/docs/web-payments/overview)
+- [Vite Documentation](https://vitejs.dev/)
+
+## License
+
+Private project – All rights reserved.

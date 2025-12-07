@@ -6,8 +6,10 @@ import { Id } from "../convex/_generated/dataModel";
 import { SimpleSquarePayment } from "./SimpleSquarePayment";
 import { StaffView } from "./StaffView";
 import { AdminPanel } from "./AdminPanel";
+import { MenuManagement } from "./MenuManagement";
 import { InstallPrompt } from "./InstallPrompt";
 import { InstallInstructions } from "./InstallInstructions";
+import { MenuItemImage } from "./components/MenuItemImage";
 import {
   NotificationPermissionPrompt,
   useNotificationService,
@@ -27,7 +29,7 @@ interface CartItem {
 
 export function CoffeeApp() {
   const [activeTab, setActiveTab] = useState<
-    "menu" | "cart" | "orders" | "staff" | "admin"
+    "menu" | "cart" | "orders" | "staff" | "products" | "admin"
   >("menu");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -134,7 +136,6 @@ export function CoffeeApp() {
       toast.error("Failed to load menu");
     }
   };
-
 
   // Load real 316 Food Truck menu
   const handleLoadRealMenu = async () => {
@@ -294,7 +295,6 @@ export function CoffeeApp() {
       return;
     }
 
-
     setShowCheckout(true);
   };
 
@@ -428,6 +428,18 @@ export function CoffeeApp() {
                 }`}
               >
                 🏪 Staff
+              </button>
+            )}
+            {isStaff && (
+              <button
+                onClick={() => setActiveTab("products")}
+                className={`px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base ${
+                  activeTab === "products"
+                    ? "border-green-600 text-green-600"
+                    : "border-transparent text-accent hover:text-green-600"
+                }`}
+              >
+                📦 Products
               </button>
             )}
             {(userRoles?.some((role) => role.role === "admin") ||
@@ -920,6 +932,25 @@ export function CoffeeApp() {
           </div>
         )}
 
+        {/* Products Tab - Staff & Admin */}
+        {activeTab === "products" && isStaff && (
+          <div className="max-w-4xl mx-auto p-4">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              Product Management
+            </h2>
+            <MenuManagement />
+          </div>
+        )}
+
+        {activeTab === "products" && !isStaff && (
+          <div className="text-center py-12">
+            <p className="text-xl text-red-500 mb-4">Access Denied</p>
+            <p className="text-gray-600">
+              You need staff privileges to access product management.
+            </p>
+          </div>
+        )}
+
         {/* Admin Panel Tab */}
         {activeTab === "admin" &&
           (userRoles?.some((role) => role.role === "admin") ||
@@ -1091,8 +1122,8 @@ export function CoffeeApp() {
                   c.name.includes("Vanilla") ||
                   c.name.includes("Caramel")
               );
-              const sugarOptions = menuItem.customizations.filter(
-                (c: any) => c.name.includes("Sugar")
+              const sugarOptions = menuItem.customizations.filter((c: any) =>
+                c.name.includes("Sugar")
               );
 
               return (
@@ -1316,25 +1347,27 @@ function MenuItemCard({
     );
   };
 
-  // Organize customizations by category
-  const sugarOptions = item.customizations.filter((c: any) =>
-    c.name.includes("Sugar")
-  );
-  const milkOptions = item.customizations.filter(
-    (c: any) =>
+  // Organize customizations by category field (with fallback to keyword matching for legacy data)
+  const getCustomizationCategory = (c: any): string => {
+    // If category is explicitly set, use it
+    if (c.category) return c.category;
+
+    // Fallback to keyword matching for legacy data without category field
+    if (c.name.includes("Sugar")) return "sugar";
+    if (
       c.name.includes("Milk") ||
       c.name.includes("Oat") ||
       c.name.includes("Almond") ||
       c.name.includes("Soy")
-  );
-  const syrupOptions = item.customizations.filter(
-    (c: any) =>
+    )
+      return "milk";
+    if (
       c.name.includes("Syrup") ||
       c.name.includes("Vanilla") ||
       c.name.includes("Caramel")
-  );
-  const extraOptions = item.customizations.filter(
-    (c: any) =>
+    )
+      return "syrup";
+    if (
       c.name.includes("Shot") ||
       c.name.includes("Decaf") ||
       c.name.includes("Whipped") ||
@@ -1346,6 +1379,25 @@ function MenuItemCard({
       c.name.includes("Jam") ||
       c.name.includes("Heated") ||
       c.name.includes("Warmed")
+    )
+      return "extras";
+    return "addons";
+  };
+
+  const sugarOptions = item.customizations.filter(
+    (c: any) => getCustomizationCategory(c) === "sugar"
+  );
+  const milkOptions = item.customizations.filter(
+    (c: any) => getCustomizationCategory(c) === "milk"
+  );
+  const syrupOptions = item.customizations.filter(
+    (c: any) => getCustomizationCategory(c) === "syrup"
+  );
+  const extraOptions = item.customizations.filter(
+    (c: any) => getCustomizationCategory(c) === "extras"
+  );
+  const otherOptions = item.customizations.filter(
+    (c: any) => getCustomizationCategory(c) === "addons"
   );
 
   return (
@@ -1355,14 +1407,11 @@ function MenuItemCard({
         {/* Product Image */}
         <div className="mb-4 sm:mb-5">
           <div className="w-full aspect-[3/2] rounded-lg overflow-hidden bg-gray-100 mb-4">
-            <img
-              src={item.image ? `/${item.image}` : "/latte.png"}
+            <MenuItemImage
+              imageId={item.imageId}
+              legacyImage={item.image}
               alt={item.name}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                // Fallback if image fails to load
-                (e.target as HTMLImageElement).src = "/latte.png";
-              }}
             />
           </div>
         </div>
@@ -1596,6 +1645,38 @@ function MenuItemCard({
                         {extra.price > 0 && (
                           <span className="text-accent font-bold ml-2 text-xs">
                             +${extra.price.toFixed(2)}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Other/Add-on Options (catch-all for custom additions) */}
+            {otherOptions.length > 0 && (
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-3 uppercase tracking-wide">
+                  🍽️ Add-ons
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {otherOptions.map((option: any) => (
+                    <label
+                      key={option.name}
+                      className="flex items-center gap-3 text-sm cursor-pointer hover:bg-amber-50/70 p-3 rounded-lg border border-amber-200/60 hover:border-amber-400/60 transition-all bg-amber-50/30"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCustomizations.includes(option.name)}
+                        onChange={() => toggleCustomization(option.name)}
+                        className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 focus:ring-2"
+                      />
+                      <span className="flex-1 font-medium">
+                        {option.name}
+                        {option.price > 0 && (
+                          <span className="text-amber-600 font-bold ml-2 text-xs">
+                            +${option.price.toFixed(2)}
                           </span>
                         )}
                       </span>

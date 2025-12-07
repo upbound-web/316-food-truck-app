@@ -8,16 +8,22 @@ const applicationTables = {
     description: v.string(),
     basePrice: v.number(),
     category: v.string(), // "coffee", "tea", "pastry", etc.
-    image: v.optional(v.string()),
+    image: v.optional(v.string()), // Legacy: filename for static images
+    imageId: v.optional(v.id("_storage")), // New: Convex file storage ID
     available: v.boolean(),
-    sizes: v.array(v.object({
-      name: v.string(), // "Small", "Medium", "Large"
-      priceModifier: v.number(), // 0, 0.5, 1.0
-    })),
-    customizations: v.array(v.object({
-      name: v.string(), // "Extra Shot", "Oat Milk", etc.
-      price: v.number(),
-    })),
+    sizes: v.array(
+      v.object({
+        name: v.string(), // "Small", "Medium", "Large"
+        priceModifier: v.number(), // 0, 0.5, 1.0
+      })
+    ),
+    customizations: v.array(
+      v.object({
+        name: v.string(), // "Extra Shot", "Oat Milk", etc.
+        price: v.number(),
+        category: v.optional(v.string()), // "milk", "syrup", "sugar", "extras", "addons"
+      })
+    ),
   }).index("by_category", ["category"]),
 
   orders: defineTable({
@@ -27,7 +33,8 @@ const applicationTables = {
     totalAmount: v.number(),
     orderNumber: v.number(),
     paymentId: v.optional(v.string()), // Square payment ID
-  }).index("by_user", ["userId"])
+  })
+    .index("by_user", ["userId"])
     .index("by_status", ["status"]),
 
   orderItems: defineTable({

@@ -193,6 +193,115 @@ export const makeFirstUserAdmin = mutation({
   },
 });
 
+// Admin: Promote staff member to admin
+export const promoteToAdmin = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const currentUserId = await getAuthUserId(ctx);
+    if (!currentUserId) {
+      throw new Error("Must be logged in");
+    }
+
+    // Check if current user is admin
+    const currentUserAdmin = await ctx.db
+      .query("userRoles")
+      .withIndex("by_user", (q) => q.eq("userId", currentUserId))
+      .filter((q) => q.eq(q.field("role"), "admin"))
+      .first();
+
+    if (!currentUserAdmin) {
+      throw new Error("Only administrators can promote users to admin");
+    }
+
+    // Check if user already has admin role
+    const existingAdminRole = await ctx.db
+      .query("userRoles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("role"), "admin"))
+      .first();
+
+    if (existingAdminRole) {
+      throw new Error("User is already an admin");
+    }
+
+    // Find and remove staff role if it exists
+    const staffRole = await ctx.db
+      .query("userRoles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("role"), "staff"))
+      .first();
+
+    if (staffRole) {
+      await ctx.db.delete(staffRole._id);
+    }
+
+    // Add admin role
+    await ctx.db.insert("userRoles", {
+      userId: args.userId,
+      role: "admin",
+      assignedBy: currentUserId,
+      assignedAt: Date.now(),
+    });
+
+    return { success: true, message: "User promoted to admin successfully" };
+  },
+});
+
+// Admin: Demote admin to staff (cannot demote yourself)
+export const demoteToStaff = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const currentUserId = await getAuthUserId(ctx);
+    if (!currentUserId) {
+      throw new Error("Must be logged in");
+    }
+
+    // Prevent self-demotion
+    if (currentUserId === args.userId) {
+      throw new Error("You cannot demote yourself");
+    }
+
+    // Check if current user is admin
+    const currentUserAdmin = await ctx.db
+      .query("userRoles")
+      .withIndex("by_user", (q) => q.eq("userId", currentUserId))
+      .filter((q) => q.eq(q.field("role"), "admin"))
+      .first();
+
+    if (!currentUserAdmin) {
+      throw new Error("Only administrators can demote users");
+    }
+
+    // Find admin role to remove
+    const adminRole = await ctx.db
+      .query("userRoles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("role"), "admin"))
+      .first();
+
+    if (!adminRole) {
+      throw new Error("User is not an admin");
+    }
+
+    // Remove admin role
+    await ctx.db.delete(adminRole._id);
+
+    // Add staff role
+    await ctx.db.insert("userRoles", {
+      userId: args.userId,
+      role: "staff",
+      assignedBy: currentUserId,
+      assignedAt: Date.now(),
+    });
+
+    return { success: true, message: "User demoted to staff successfully" };
+  },
+});
+
 // Get all staff users (admin only, or when no admins exist)
 export const getAllStaffUsers = query({
   args: {},
