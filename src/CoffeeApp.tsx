@@ -1534,6 +1534,38 @@ function MenuItemCard({
               </div>
             </div>
 
+            {/* Add-on Options (coffee add-ons - shown first as most important for combos) */}
+            {otherOptions.length > 0 && (
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-3 uppercase tracking-wide">
+                  🍽️ Add-ons
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {otherOptions.map((option: any) => (
+                    <label
+                      key={option.name}
+                      className="flex items-center gap-3 text-sm cursor-pointer hover:bg-amber-50/70 p-3 rounded-lg border border-amber-200/60 hover:border-amber-400/60 transition-all bg-amber-50/30"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCustomizations.includes(option.name)}
+                        onChange={() => toggleCustomization(option.name)}
+                        className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 focus:ring-2"
+                      />
+                      <span className="flex-1 font-medium">
+                        {option.name}
+                        {option.price > 0 && (
+                          <span className="text-amber-600 font-bold ml-2 text-xs">
+                            +${option.price.toFixed(2)}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Sugar Selection */}
             {sugarOptions.length > 0 && (
               <div>
@@ -1645,38 +1677,6 @@ function MenuItemCard({
                         {extra.price > 0 && (
                           <span className="text-accent font-bold ml-2 text-xs">
                             +${extra.price.toFixed(2)}
-                          </span>
-                        )}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Other/Add-on Options (catch-all for custom additions) */}
-            {otherOptions.length > 0 && (
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-3 uppercase tracking-wide">
-                  🍽️ Add-ons
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {otherOptions.map((option: any) => (
-                    <label
-                      key={option.name}
-                      className="flex items-center gap-3 text-sm cursor-pointer hover:bg-amber-50/70 p-3 rounded-lg border border-amber-200/60 hover:border-amber-400/60 transition-all bg-amber-50/30"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedCustomizations.includes(option.name)}
-                        onChange={() => toggleCustomization(option.name)}
-                        className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 focus:ring-2"
-                      />
-                      <span className="flex-1 font-medium">
-                        {option.name}
-                        {option.price > 0 && (
-                          <span className="text-amber-600 font-bold ml-2 text-xs">
-                            +${option.price.toFixed(2)}
                           </span>
                         )}
                       </span>
