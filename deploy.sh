@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Deployment script for 316 Food Truck App
-# Validates environment and deploys via Docker
+# Validates environment and deploys via Docker with Cloudflare cache purge
 
 ENV_FILE=".env.production"
 
@@ -16,6 +16,8 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "   - VITE_SQUARE_APPLICATION_ID"
     echo "   - VITE_SQUARE_LOCATION_ID"
     echo "   - VITE_SQUARE_ENVIRONMENT"
+    echo "   - CLOUDFLARE_ZONE_ID (optional, for cache purging)"
+    echo "   - CLOUDFLARE_API_TOKEN (optional, for cache purging)"
     exit 1
 fi
 
@@ -26,7 +28,7 @@ echo "✅ Found $ENV_FILE"
 check_var() {
     local var_name=$1
     local value=$(grep "^$var_name=" "$ENV_FILE" | cut -d '=' -f2-)
-    
+
     # Trim whitespace (including carriage returns from windows edited files)
     value=$(echo "$value" | tr -d '\r' | xargs)
 
@@ -35,6 +37,14 @@ check_var() {
         return 1
     fi
     echo "   - $var_name: OK"
+}
+
+# Helper function to get variable value
+get_var() {
+    local var_name=$1
+    local value=$(grep "^$var_name=" "$ENV_FILE" | cut -d '=' -f2-)
+    value=$(echo "$value" | tr -d '\r' | xargs)
+    echo "$value"
 }
 
 echo "🔍 Validating environment variables..."
@@ -79,16 +89,43 @@ $COMPOSE_CMD --env-file "$ENV_FILE" down
 echo "🚀 Starting application..."
 $COMPOSE_CMD --env-file "$ENV_FILE" up -d
 
-if [ $? -eq 0 ]; then
-    echo ""
-    echo "==========================================="
-    echo "✅ DEPLOYMENT SUCCESSFUL"
-    echo "==========================================="
-    echo "🌐 App running at: http://localhost:3202"
-    echo "📜 View logs:      $COMPOSE_CMD logs -f"
-    echo "🛑 Stop app:       $COMPOSE_CMD down"
-else
+if [ $? -ne 0 ]; then
     echo "❌ Deployment failed to start"
     exit 1
 fi
+
+echo "✅ Application started successfully"
+
+# 5. Purge Cloudflare cache (if configured)
+CF_ZONE_ID=$(get_var "CLOUDFLARE_ZONE_ID")
+CF_API_TOKEN=$(get_var "CLOUDFLARE_API_TOKEN")
+
+if [ -n "$CF_ZONE_ID" ] && [ -n "$CF_API_TOKEN" ]; then
+    echo "🌐 Purging Cloudflare cache..."
+
+    PURGE_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
+        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        --data '{"purge_everything":true}')
+
+    # Check if purge was successful
+    if echo "$PURGE_RESPONSE" | grep -q '"success":true'; then
+        echo "✅ Cloudflare cache purged successfully"
+    else
+        echo "⚠️  Warning: Cloudflare cache purge may have failed"
+        echo "   Response: $PURGE_RESPONSE"
+        echo "   You may need to manually purge the cache in Cloudflare dashboard"
+    fi
+else
+    echo "⚠️  Cloudflare credentials not configured - skipping cache purge"
+    echo "   Add CLOUDFLARE_ZONE_ID and CLOUDFLARE_API_TOKEN to $ENV_FILE for automatic cache purging"
+fi
+
+echo ""
+echo "==========================================="
+echo "✅ DEPLOYMENT COMPLETE"
+echo "==========================================="
+echo "🌐 App running at: http://localhost:3202"
+echo "📜 View logs:      $COMPOSE_CMD logs -f"
+echo "🛑 Stop app:       $COMPOSE_CMD down"
 
