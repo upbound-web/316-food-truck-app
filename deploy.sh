@@ -39,17 +39,17 @@ fi
 
 echo "✅ Docker is ready"
 
-# 3. Stop, rebuild, and start
-echo "🛑 Stopping existing containers..."
-$COMPOSE_CMD --env-file "$ENV_FILE" down
-
-echo "📦 Rebuilding Docker image..."
+# 3. Build first, then stop and start (minimizes downtime)
+echo "📦 Building Docker image..."
 $COMPOSE_CMD --env-file "$ENV_FILE" build --no-cache
 
 if [ $? -ne 0 ]; then
     echo "❌ Docker build failed!"
     exit 1
 fi
+
+echo "🛑 Stopping existing containers..."
+$COMPOSE_CMD --env-file "$ENV_FILE" down
 
 echo "🚀 Starting application..."
 $COMPOSE_CMD --env-file "$ENV_FILE" up -d
