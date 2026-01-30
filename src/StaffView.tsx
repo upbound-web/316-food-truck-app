@@ -1,15 +1,33 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
 import { Id } from "../convex/_generated/dataModel";
 import { useStaffOrderNotifications } from "./useStaffOrderNotifications";
+import { usePrinter } from "./printing/usePrinter";
+import { printerService } from "./printing/printerService";
+
+const hasWebUSB = typeof navigator !== "undefined" && !!navigator.usb;
 
 export function StaffView() {
   const [statusFilter, setStatusFilter] = useState<string>("active");
+  const { printerStatus, isConnected, pair, disconnect, printOrder } = usePrinter();
 
-  // Enable audio notifications for new orders
-  useStaffOrderNotifications();
+  // Auto-print new orders when printer is connected
+  const handleNewOrders = useCallback((orders: any[]) => {
+    // Check status directly from the service to avoid stale closures
+    if (printerService.getStatus() !== "connected") return;
+    for (const order of orders) {
+      printOrder(order).then((ok) => {
+        if (!ok) {
+          toast.error(`Failed to print receipt for order #${order.orderNumber}`);
+        }
+      });
+    }
+  }, [printOrder]);
+
+  // Enable audio notifications + auto-printing for new orders
+  useStaffOrderNotifications(handleNewOrders);
   
   const allOrders = useQuery(
     statusFilter === "active" 
@@ -65,8 +83,47 @@ export function StaffView() {
     <div className="max-w-6xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold text-gray-900">Staff Dashboard</h2>
-        <div className="text-sm text-gray-600">
-          {allOrders.length} orders
+        <div className="flex items-center gap-4">
+          {hasWebUSB && (
+            <div className="flex items-center gap-2">
+              {isConnected ? (
+                <>
+                  <span className="inline-block w-2 h-2 rounded-full bg-green-500" />
+                  <span className="text-sm text-green-700">Printer Connected</span>
+                  <button
+                    onClick={disconnect}
+                    className="text-xs text-gray-500 underline hover:text-gray-700"
+                  >
+                    Disconnect
+                  </button>
+                </>
+              ) : (
+                <>
+                  {printerStatus === "connecting" && (
+                    <>
+                      <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                      <span className="text-sm text-yellow-700">Connecting...</span>
+                    </>
+                  )}
+                  {printerStatus === "error" && (
+                    <>
+                      <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
+                      <span className="text-sm text-red-700">Printer Error</span>
+                    </>
+                  )}
+                  <button
+                    onClick={pair}
+                    className="px-3 py-1.5 text-sm bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
+                  >
+                    Connect Printer
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+          <div className="text-sm text-gray-600">
+            {allOrders.length} orders
+          </div>
         </div>
       </div>
 
@@ -187,7 +244,7 @@ export function StaffView() {
               </div>
 
               {/* Action Buttons */}
-              <div className="px-4 py-3 bg-gray-50 border-t">
+              <div className="px-4 py-3 bg-gray-50 border-t space-y-2">
                 {order.status === "pending" && (
                   <button
                     onClick={() => handleStatusUpdate(order._id, "preparing", order.orderNumber)}
@@ -196,7 +253,7 @@ export function StaffView() {
                     Start Preparing
                   </button>
                 )}
-                
+
                 {order.status === "preparing" && (
                   <button
                     onClick={() => handleStatusUpdate(order._id, "ready", order.orderNumber)}
@@ -205,12 +262,29 @@ export function StaffView() {
                     Mark Ready
                   </button>
                 )}
-                
+
                 {order.status === "ready" && (
                   <div className="text-center">
                     <p className="text-green-700 font-medium text-sm">✅ Ready for Pickup</p>
                     <p className="text-xs text-gray-600 mt-1">Waiting for customer...</p>
                   </div>
+                )}
+
+                {hasWebUSB && isConnected && (
+                  <button
+                    onClick={() => {
+                      printOrder(order as any).then((ok) => {
+                        if (ok) {
+                          toast.success(`Receipt printed for order #${order.orderNumber}`);
+                        } else {
+                          toast.error(`Failed to print receipt for order #${order.orderNumber}`);
+                        }
+                      });
+                    }}
+                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium border"
+                  >
+                    Reprint Receipt
+                  </button>
                 )}
               </div>
             </div>

@@ -20,7 +20,7 @@ function normalizeOrder(order: any): Order {
   };
 }
 
-export function useStaffOrderNotifications() {
+export function useStaffOrderNotifications(onNewOrders?: (orders: any[]) => void) {
   const orders = useQuery(api.orders.getActiveStaffOrders, { limit: 50 });
   const previousOrdersRef = useRef<Order[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -74,12 +74,20 @@ export function useStaffOrderNotifications() {
       !previousOrders.some(prevOrder => prevOrder._id === currentOrder._id)
     );
 
-    // Play sound for new orders
+    // Play sound and notify for new orders
     if (newOrders.length > 0) {
       console.log(`🔔 Staff: ${newOrders.length} new order(s) detected:`,
         newOrders.map(o => `#${o.orderNumber} (${o.customerName})`).join(', ')
       );
       playNotificationSound();
+
+      // Call the callback with the full order objects (not the normalized subset)
+      if (onNewOrders) {
+        const fullNewOrders = orders!.filter(order =>
+          newOrders.some(n => n._id === order._id)
+        );
+        onNewOrders(fullNewOrders);
+      }
     }
 
     // Update the reference for next comparison
