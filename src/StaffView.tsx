@@ -7,6 +7,7 @@ import { useStaffOrderNotifications } from "./useStaffOrderNotifications";
 import { usePrinter } from "./printing/usePrinter";
 import { printerService } from "./printing/printerService";
 
+declare const __BUILD_TIME__: string;
 const hasWebUSB = typeof navigator !== "undefined" && !!navigator.usb;
 
 export function StaffView() {
@@ -71,10 +72,16 @@ export function StaffView() {
     }
   };
 
-  if (!allOrders) {
+  // For "ready" and "all" filters, only show orders from the last 24 hours
+  const displayOrders = allOrders && (statusFilter === "ready" || statusFilter === "all")
+    ? allOrders.filter(order => Date.now() - order._creationTime < 24 * 60 * 60 * 1000)
+    : allOrders;
+
+  if (!displayOrders) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
+      <div className="flex flex-col justify-center items-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="text-center text-xs text-gray-400 mt-8">Build: {__BUILD_TIME__}</p>
       </div>
     );
   }
@@ -122,7 +129,7 @@ export function StaffView() {
             </div>
           )}
           <div className="text-sm text-gray-600">
-            {allOrders.length} orders
+            {displayOrders.length} orders
           </div>
         </div>
       </div>
@@ -182,7 +189,7 @@ export function StaffView() {
       </div>
 
       {/* Orders Grid */}
-      {allOrders.length === 0 ? (
+      {displayOrders.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-xl text-gray-500 mb-4">No orders found</p>
           <p className="text-gray-400">
@@ -192,7 +199,7 @@ export function StaffView() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {allOrders.map((order) => (
+          {displayOrders.map((order) => (
             <div key={order._id} className="bg-white rounded-lg shadow-md border overflow-hidden">
               {/* Order Header */}
               <div className="bg-gray-50 px-4 py-3 border-b">
@@ -291,6 +298,7 @@ export function StaffView() {
           ))}
         </div>
       )}
+      <p className="text-center text-xs text-gray-400 mt-8 pb-4">Build: {__BUILD_TIME__}</p>
     </div>
   );
 }

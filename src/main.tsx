@@ -9,14 +9,25 @@ import { registerSW } from 'virtual:pwa-register';
 
 const updateSW = registerSW({
   onNeedRefresh() {
-    console.log('App update available');
-    // You can show a prompt to user here
+    console.log('App update available, applying...');
+    updateSW(true);
   },
   onOfflineReady() {
     console.log('App ready to work offline');
   },
   onRegistered(r) {
     console.log('SW Registered: ' + r);
+
+    // Set up periodic update checks (every 60 seconds)
+    // This forces the browser to check for new service worker versions
+    // Without this, PWA only checks on navigation, which doesn't happen
+    // when everything is served from cache
+    if (r) {
+      setInterval(() => {
+        console.log('Checking for service worker updates...');
+        r.update();
+      }, 60 * 1000); // Check every 60 seconds
+    }
   },
   onRegisterError(error) {
     console.log('SW registration error', error);

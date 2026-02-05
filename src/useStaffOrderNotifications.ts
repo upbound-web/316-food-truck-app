@@ -23,6 +23,7 @@ function normalizeOrder(order: any): Order {
 export function useStaffOrderNotifications(onNewOrders?: (orders: any[]) => void) {
   const orders = useQuery(api.orders.getActiveStaffOrders, { limit: 50 });
   const previousOrdersRef = useRef<Order[]>([]);
+  const hasLoadedRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Initialize audio on mount
@@ -64,7 +65,8 @@ export function useStaffOrderNotifications(onNewOrders?: (orders: any[]) => void
     const previousOrders = previousOrdersRef.current;
 
     // If this is the first load, just store the orders without notifications
-    if (previousOrders.length === 0) {
+    if (!hasLoadedRef.current) {
+      hasLoadedRef.current = true;
       previousOrdersRef.current = normalizedCurrentOrders;
       return;
     }
