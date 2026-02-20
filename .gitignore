@@ -25,4 +25,4 @@ dist-ssr
 *.sw?
 
 # Ignored for the template, you probably want to remove it:
-# package-lock.json (commented out for production deployment)
+# package-lock.json (commented out for production deployment).env.production.backup
