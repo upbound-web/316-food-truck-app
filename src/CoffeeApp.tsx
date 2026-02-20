@@ -75,6 +75,7 @@ export function CoffeeApp() {
   const userRoles = useQuery(api.staff.getCurrentUserRoles);
   const anyAdminsExist = useQuery(api.staff.anyAdminsExist);
   const userInfo = useQuery(api.users.getUserInfo);
+  const openStatus = useQuery(api.settings.isCurrentlyOpen);
   const processSquarePayment = useAction(api.payments.processSquarePayment);
   const seedMenu = useMutation(api.menu.seedMenu);
   const loadRealMenu = useMutation(api.menu.loadRealMenu);
@@ -148,6 +149,10 @@ export function CoffeeApp() {
   };
 
   const addToCart = (item: any, size: string, customizations: string[]) => {
+    if (openStatus && !openStatus.isOpen) {
+      toast.error("Sorry, we're currently closed. " + openStatus.reason);
+      return;
+    }
     const sizePrice =
       item.sizes.find((s: any) => s.name === size)?.priceModifier || 0;
     const customizationPrice = customizations.reduce((total, customization) => {
@@ -461,6 +466,13 @@ export function CoffeeApp() {
         {/* Menu Tab */}
         {activeTab === "menu" && (
           <div className="w-full min-w-0">
+            {/* Closed Banner */}
+            {openStatus && !openStatus.isOpen && (
+              <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg px-4 py-3 mb-4">
+                <p className="font-semibold">We're currently closed</p>
+                <p className="text-sm text-red-700">{openStatus.reason}</p>
+              </div>
+            )}
             {/* Search Bar & Quick Reorder */}
             <div className="mb-4 sm:mb-6 space-y-3">
               {/* Search Bar */}
@@ -641,6 +653,7 @@ export function CoffeeApp() {
                     key={item._id}
                     item={item}
                     onAddToCart={addToCart}
+                    isOpen={!openStatus || openStatus.isOpen}
                   />
                 ))}
               </div>
@@ -782,9 +795,14 @@ export function CoffeeApp() {
 
                       <button
                         onClick={() => void handlePlaceOrder()}
-                        className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-semibold"
+                        disabled={openStatus !== undefined && !openStatus?.isOpen}
+                        className={`w-full px-4 py-3 rounded-lg transition-colors font-semibold ${
+                          openStatus && !openStatus.isOpen
+                            ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                            : "bg-primary text-white hover:bg-primary-hover"
+                        }`}
                       >
-                        Place Order
+                        {openStatus && !openStatus.isOpen ? "Closed - Ordering Unavailable" : "Place Order"}
                       </button>
                     </div>
                   </div>
@@ -1302,9 +1320,11 @@ export function CoffeeApp() {
 function MenuItemCard({
   item,
   onAddToCart,
+  isOpen,
 }: {
   item: any;
   onAddToCart: (item: any, size: string, customizations: string[]) => void;
+  isOpen: boolean;
 }) {
   const [selectedSize, setSelectedSize] = useState(item.sizes[0]?.name || "");
   const [selectedCustomizations, setSelectedCustomizations] = useState<
@@ -1475,6 +1495,7 @@ function MenuItemCard({
               return (
                 <button
                   key={size.name}
+                  disabled={!isOpen}
                   onClick={() => {
                     // Quick order: use current customizations including sugar selection
                     const allCustomizations = [...selectedCustomizations];
@@ -1487,7 +1508,11 @@ function MenuItemCard({
                     setSelectedCustomizations([]);
                     setSelectedSugar("No Sugar");
                   }}
-                  className="group bg-gradient-to-r from-primary to-primary-hover text-white rounded-lg py-3 sm:py-4 px-2 sm:px-3 text-center hover:from-primary-hover hover:to-primary transform hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md min-w-0 w-full"
+                  className={`group rounded-lg py-3 sm:py-4 px-2 sm:px-3 text-center transition-all duration-200 shadow-sm min-w-0 w-full ${
+                    isOpen
+                      ? "bg-gradient-to-r from-primary to-primary-hover text-white hover:from-primary-hover hover:to-primary transform hover:scale-105 hover:shadow-md"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
                 >
                   <div className="font-bold text-xs sm:text-sm mb-1">
                     {size.name}
@@ -1689,6 +1714,7 @@ function MenuItemCard({
             {/* Enhanced Custom Add to Cart Button */}
             <div className="pt-6 border-t border-gray-300">
               <button
+                disabled={!isOpen}
                 onClick={() => {
                   const allCustomizations = [...selectedCustomizations];
                   if (selectedSugar && selectedSugar !== "No Sugar") {
@@ -1701,7 +1727,11 @@ function MenuItemCard({
                   setSelectedSugar("No Sugar");
                   setIsExpanded(false); // Collapse after adding
                 }}
-                className="w-full bg-gradient-to-r from-primary to-primary-hover text-white rounded-xl py-4 px-6 font-bold text-lg hover:from-primary-hover hover:to-primary transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className={`w-full rounded-xl py-4 px-6 font-bold text-lg transition-all duration-200 ${
+                  isOpen
+                    ? "bg-gradient-to-r from-primary to-primary-hover text-white hover:from-primary-hover hover:to-primary transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <span>Add Custom {item.name}</span>

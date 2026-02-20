@@ -24,6 +24,8 @@ export function useStaffOrderNotifications(onNewOrders?: (orders: any[]) => void
   const orders = useQuery(api.orders.getActiveStaffOrders, { limit: 50 });
   const previousOrdersRef = useRef<Order[]>([]);
   const hasLoadedRef = useRef(false);
+  const onNewOrdersRef = useRef(onNewOrders);
+  onNewOrdersRef.current = onNewOrders;
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Initialize audio on mount
@@ -84,11 +86,11 @@ export function useStaffOrderNotifications(onNewOrders?: (orders: any[]) => void
       playNotificationSound();
 
       // Call the callback with the full order objects (not the normalized subset)
-      if (onNewOrders) {
+      if (onNewOrdersRef.current) {
         const fullNewOrders = orders!.filter(order =>
           newOrders.some(n => n._id === order._id)
         );
-        onNewOrders(fullNewOrders);
+        onNewOrdersRef.current(fullNewOrders);
       }
     }
 

@@ -55,6 +55,12 @@ export const processSquarePayment = action({
       throw new Error("Authentication required to process payment");
     }
 
+    // BUSINESS HOURS: Reject orders when closed
+    const openStatus: any = await ctx.runQuery("settings:isCurrentlyOpen" as any);
+    if (!openStatus.isOpen) {
+      throw new Error("Sorry, we're currently closed. " + openStatus.reason);
+    }
+
     // SECURITY: Input validation
     if (!args.customerName || args.customerName.trim().length === 0) {
       throw new Error("Customer name is required");
@@ -113,11 +119,18 @@ export const processSquarePayment = action({
         const random = Math.random().toString(36).substring(2, 8); // 6 chars
         const userIdShort = user._id.substring(0, 8); // First 8 chars of user ID
         const idempotencyKey = `${userIdShort}-${timestamp}-${random}`; // ~30 chars
-        
+
+        // Build item summary for Square payment note
+        const itemSummary = validatedItems
+          .map(i => `${i.quantity}x ${i.name} (${i.size})`)
+          .join(", ");
+
         paymentResult = await processSquarePaymentAPI({
           sourceId: args.sourceId,
           amount: amountInCents,
           idempotencyKey,
+          note: `App Sale - ${args.customerName.trim()}: ${itemSummary}`.slice(0, 500),
+          referenceId: `app-order-${timestamp}-${random}`,
         });
       }
 
@@ -233,6 +246,8 @@ async function processSquarePaymentAPI(params: {
   sourceId: string;
   amount: number;
   idempotencyKey: string;
+  note?: string;
+  referenceId?: string;
 }) {
   const accessToken = process.env.SQUARE_ACCESS_TOKEN;
   if (!accessToken) {
@@ -258,6 +273,8 @@ async function processSquarePaymentAPI(params: {
           currency: "AUD"
         },
         idempotency_key: params.idempotencyKey,
+        ...(params.note && { note: params.note }),
+        ...(params.referenceId && { reference_id: params.referenceId }),
       }),
     });
 

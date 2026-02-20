@@ -7,16 +7,18 @@ interface MenuItemImageProps {
   legacyImage?: string;
   alt: string;
   className?: string;
-  fallbackSrc?: string;
   lazy?: boolean;
 }
+
+// 1x1 transparent PNG as a guaranteed-available fallback
+const TRANSPARENT_PIXEL =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAA0lEQVQI12P4z8BQDwAEgAF/QualzQAAAABJRU5ErkJggg==";
 
 export function MenuItemImage({
   imageId,
   legacyImage,
   alt,
   className = "w-full h-full object-cover",
-  fallbackSrc = "/latte.png",
   lazy = true,
 }: MenuItemImageProps) {
   // Fetch the storage URL if we have an imageId
@@ -28,10 +30,10 @@ export function MenuItemImage({
   // Determine the final image source
   // Priority: 1. Storage URL, 2. Legacy image path, 3. Fallback
   const imageSrc = imageId
-    ? storageUrl || fallbackSrc // Use storage URL or fallback while loading
+    ? storageUrl || TRANSPARENT_PIXEL // Use storage URL or fallback while loading
     : legacyImage
       ? `/${legacyImage}`
-      : fallbackSrc;
+      : TRANSPARENT_PIXEL;
 
   return (
     <img
@@ -41,8 +43,10 @@ export function MenuItemImage({
       loading={lazy ? "lazy" : "eager"}
       decoding="async"
       onError={(e) => {
-        // Fallback if image fails to load
-        (e.target as HTMLImageElement).src = fallbackSrc;
+        const img = e.target as HTMLImageElement;
+        if (img.src !== TRANSPARENT_PIXEL) {
+          img.src = TRANSPARENT_PIXEL;
+        }
       }}
     />
   );

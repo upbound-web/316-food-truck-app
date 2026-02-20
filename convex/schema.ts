@@ -61,6 +61,11 @@ const applicationTables = {
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
+
+  appSettings: defineTable({
+    key: v.string(),
+    value: v.string(),
+  }).index("by_key", ["key"]),
 };
 
 export default defineSchema({

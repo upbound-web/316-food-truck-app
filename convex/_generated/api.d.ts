@@ -22,6 +22,7 @@ import type * as payments from "../payments.js";
 import type * as pushNotificationActions from "../pushNotificationActions.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as router from "../router.js";
+import type * as settings from "../settings.js";
 import type * as staff from "../staff.js";
 import type * as users from "../users.js";
 
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   pushNotificationActions: typeof pushNotificationActions;
   pushNotifications: typeof pushNotifications;
   router: typeof router;
+  settings: typeof settings;
   staff: typeof staff;
   users: typeof users;
 }>;

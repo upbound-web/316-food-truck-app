@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
@@ -16,11 +16,15 @@ export function StaffView() {
 
   // Auto-print new orders when printer is connected
   const handleNewOrders = useCallback((orders: any[]) => {
-    // Check status directly from the service to avoid stale closures
-    if (printerService.getStatus() !== "connected") return;
+    const status = printerService.getStatus();
+    console.log(`Auto-print triggered: ${orders.length} order(s), printer status: ${status}`);
+    if (status !== "connected") return;
     for (const order of orders) {
+      console.log(`Printing order #${order.orderNumber}...`);
       printOrder(order).then((ok) => {
-        if (!ok) {
+        if (ok) {
+          toast.success(`Receipt auto-printed for order #${order.orderNumber}`);
+        } else {
           toast.error(`Failed to print receipt for order #${order.orderNumber}`);
         }
       });
@@ -81,7 +85,7 @@ export function StaffView() {
     return (
       <div className="flex flex-col justify-center items-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <p className="text-center text-xs text-gray-400 mt-8">Build: {__BUILD_TIME__}</p>
+        <p className="text-center text-xs text-gray-400 mt-8">Build: {__BUILD_TIME__} | Location: {import.meta.env.VITE_SQUARE_LOCATION_ID}</p>
       </div>
     );
   }
@@ -133,6 +137,9 @@ export function StaffView() {
           </div>
         </div>
       </div>
+
+      {/* Business Hours Card */}
+      <BusinessHoursCard />
 
       {/* Status Filter */}
       <div className="flex gap-2 mb-6 flex-wrap">
@@ -298,7 +305,149 @@ export function StaffView() {
           ))}
         </div>
       )}
-      <p className="text-center text-xs text-gray-400 mt-8 pb-4">Build: {__BUILD_TIME__}</p>
+      <p className="text-center text-xs text-gray-400 mt-8 pb-4">Build: {__BUILD_TIME__} | Location: {import.meta.env.VITE_SQUARE_LOCATION_ID}</p>
+    </div>
+  );
+}
+
+function BusinessHoursCard() {
+  const openStatus = useQuery(api.settings.isCurrentlyOpen);
+  const businessHours = useQuery(api.settings.getBusinessHours);
+  const updateHours = useMutation(api.settings.updateBusinessHours);
+  const setOverride = useMutation(api.settings.setManualOverride);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editOpenTime, setEditOpenTime] = useState("07:00");
+  const [editCloseTime, setEditCloseTime] = useState("14:00");
+
+  useEffect(() => {
+    if (businessHours) {
+      setEditOpenTime(businessHours.openTime);
+      setEditCloseTime(businessHours.closeTime);
+    }
+  }, [businessHours]);
+
+  if (!openStatus || !businessHours) return null;
+
+  const handleSaveHours = async () => {
+    try {
+      await updateHours({ openTime: editOpenTime, closeTime: editCloseTime });
+      toast.success("Business hours updated");
+      setEditOpen(false);
+    } catch {
+      toast.error("Failed to update hours");
+    }
+  };
+
+  const handleOverride = async (override: "none" | "forceOpen" | "forceClosed") => {
+    try {
+      await setOverride({ override });
+      toast.success(
+        override === "none" ? "Using scheduled hours" :
+        override === "forceOpen" ? "Forced open" : "Forced closed"
+      );
+    } catch {
+      toast.error("Failed to update override");
+    }
+  };
+
+  const formatTime12 = (time: string) => {
+    const [h, m] = time.split(":");
+    const hour = parseInt(h, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${hour12}:${m} ${ampm}`;
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-md border p-4 mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <h3 className="text-lg font-bold text-gray-900">Business Hours</h3>
+          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+            openStatus.isOpen
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}>
+            {openStatus.isOpen ? "OPEN" : "CLOSED"}
+          </span>
+        </div>
+        <button
+          onClick={() => setEditOpen(!editOpen)}
+          className="text-sm text-gray-500 hover:text-gray-700 underline"
+        >
+          {editOpen ? "Cancel" : "Edit Hours"}
+        </button>
+      </div>
+
+      <p className="text-sm text-gray-600 mb-3">{openStatus.reason}</p>
+
+      {/* Manual Override */}
+      <div className="flex gap-2 flex-wrap mb-3">
+        <button
+          onClick={() => void handleOverride("none")}
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            businessHours.manualOverride === "none"
+              ? "bg-gray-800 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          Auto (Use Hours)
+        </button>
+        <button
+          onClick={() => void handleOverride("forceOpen")}
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            businessHours.manualOverride === "forceOpen"
+              ? "bg-green-600 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          Force Open
+        </button>
+        <button
+          onClick={() => void handleOverride("forceClosed")}
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            businessHours.manualOverride === "forceClosed"
+              ? "bg-red-600 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          Force Closed
+        </button>
+      </div>
+
+      {/* Edit Hours */}
+      {editOpen && (
+        <div className="border-t pt-3 mt-3 flex items-end gap-3 flex-wrap">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Open</label>
+            <input
+              type="time"
+              value={editOpenTime}
+              onChange={(e) => setEditOpenTime(e.target.value)}
+              className="px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Close</label>
+            <input
+              type="time"
+              value={editCloseTime}
+              onChange={(e) => setEditCloseTime(e.target.value)}
+              className="px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <button
+            onClick={() => void handleSaveHours()}
+            className="px-4 py-1.5 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-hover transition-colors"
+          >
+            Save
+          </button>
+          <span className="text-xs text-gray-400">
+            Currently: {formatTime12(businessHours.openTime)} - {formatTime12(businessHours.closeTime)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

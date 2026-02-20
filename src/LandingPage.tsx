@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../convex/_generated/api";
 import { SignInForm } from "./SignInForm";
 
 export function LandingPage() {
   const [showSignIn, setShowSignIn] = useState(false);
+  const openStatus = useQuery(api.settings.isCurrentlyOpen);
 
   if (showSignIn) {
     return (
@@ -62,6 +65,14 @@ export function LandingPage() {
               Skip the line and order your favorite coffee and food ahead of time. 
               Perfect for busy lifestyles - order anywhere, anytime!
             </p>
+
+            {/* Closed Banner */}
+            {openStatus && !openStatus.isOpen && (
+              <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg px-6 py-3 mb-6 max-w-md mx-auto">
+                <p className="font-semibold">We're currently closed</p>
+                <p className="text-sm text-red-700">{openStatus.reason}</p>
+              </div>
+            )}
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">

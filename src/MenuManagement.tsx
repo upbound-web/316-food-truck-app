@@ -529,7 +529,8 @@ export function MenuManagement() {
                         alt="Preview"
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/latte.png";
+                          const img = e.target as HTMLImageElement;
+                          img.style.display = "none";
                         }}
                       />
                       {(imagePreview || existingImageUrl) && (
