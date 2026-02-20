@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { toast } from "sonner";
@@ -310,32 +310,65 @@ export function StaffView() {
   );
 }
 
+interface DaySchedule {
+  day: number;
+  label: string;
+  isOpen: boolean;
+  openTime: string;
+  closeTime: string;
+}
+
 function BusinessHoursCard() {
   const openStatus = useQuery(api.settings.isCurrentlyOpen);
   const businessHours = useQuery(api.settings.getBusinessHours);
-  const updateHours = useMutation(api.settings.updateBusinessHours);
+  const updateWeeklySchedule = useMutation(api.settings.updateWeeklySchedule);
   const setOverride = useMutation(api.settings.setManualOverride);
 
   const [editOpen, setEditOpen] = useState(false);
-  const [editOpenTime, setEditOpenTime] = useState("07:00");
-  const [editCloseTime, setEditCloseTime] = useState("14:00");
-
-  useEffect(() => {
-    if (businessHours) {
-      setEditOpenTime(businessHours.openTime);
-      setEditCloseTime(businessHours.closeTime);
-    }
-  }, [businessHours]);
+  const [editSchedule, setEditSchedule] = useState<DaySchedule[] | null>(null);
 
   if (!openStatus || !businessHours) return null;
 
-  const handleSaveHours = async () => {
+  const weeklySchedule: DaySchedule[] = businessHours.weeklySchedule;
+
+  const handleEditStart = () => {
+    setEditSchedule(weeklySchedule.map((d) => ({ ...d })));
+    setEditOpen(true);
+  };
+
+  const handleEditCancel = () => {
+    setEditSchedule(null);
+    setEditOpen(false);
+  };
+
+  const handleDayChange = (dayIndex: number, field: keyof DaySchedule, value: any) => {
+    if (!editSchedule) return;
+    setEditSchedule(editSchedule.map((d) =>
+      d.day === dayIndex ? { ...d, [field]: value } : d
+    ));
+  };
+
+  const handleCopyToAll = (sourceDayIndex: number) => {
+    if (!editSchedule) return;
+    const source = editSchedule.find((d) => d.day === sourceDayIndex);
+    if (!source) return;
+    setEditSchedule(editSchedule.map((d) => ({
+      ...d,
+      isOpen: source.isOpen,
+      openTime: source.openTime,
+      closeTime: source.closeTime,
+    })));
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!editSchedule) return;
     try {
-      await updateHours({ openTime: editOpenTime, closeTime: editCloseTime });
-      toast.success("Business hours updated");
+      await updateWeeklySchedule({ schedule: JSON.stringify(editSchedule) });
+      toast.success("Weekly schedule updated");
+      setEditSchedule(null);
       setEditOpen(false);
-    } catch {
-      toast.error("Failed to update hours");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to update schedule");
     }
   };
 
@@ -359,6 +392,30 @@ function BusinessHoursCard() {
     return `${hour12}:${m} ${ampm}`;
   };
 
+  // Group consecutive days with same hours for summary display
+  const buildScheduleSummary = () => {
+    // Reorder to Mon-Sun for display
+    const ordered = [1, 2, 3, 4, 5, 6, 0].map((i) => weeklySchedule[i]);
+    const groups: { days: string[]; text: string }[] = [];
+    for (const day of ordered) {
+      const text = day.isOpen
+        ? `${formatTime12(day.openTime)} - ${formatTime12(day.closeTime)}`
+        : "Closed";
+      const last = groups[groups.length - 1];
+      if (last && last.text === text) {
+        last.days.push(day.label.slice(0, 3));
+      } else {
+        groups.push({ days: [day.label.slice(0, 3)], text });
+      }
+    }
+    return groups.map((g) => {
+      const dayRange = g.days.length > 2
+        ? `${g.days[0]}-${g.days[g.days.length - 1]}`
+        : g.days.join(", ");
+      return { dayRange, text: g.text };
+    });
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md border p-4 mb-6">
       <div className="flex items-center justify-between mb-3">
@@ -373,14 +430,28 @@ function BusinessHoursCard() {
           </span>
         </div>
         <button
-          onClick={() => setEditOpen(!editOpen)}
+          onClick={() => editOpen ? handleEditCancel() : handleEditStart()}
           className="text-sm text-gray-500 hover:text-gray-700 underline"
         >
           {editOpen ? "Cancel" : "Edit Hours"}
         </button>
       </div>
 
-      <p className="text-sm text-gray-600 mb-3">{openStatus.reason}</p>
+      <p className="text-sm text-gray-600 mb-2">{openStatus.reason}</p>
+
+      {/* Schedule Summary (non-edit mode) */}
+      {!editOpen && (
+        <div className="mb-3 space-y-0.5">
+          {buildScheduleSummary().map((row) => (
+            <div key={row.dayRange} className="flex gap-2 text-sm">
+              <span className="text-gray-500 w-20 font-medium">{row.dayRange}</span>
+              <span className={row.text === "Closed" ? "text-gray-400" : "text-gray-700"}>
+                {row.text}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Manual Override */}
       <div className="flex gap-2 flex-wrap mb-3">
@@ -416,36 +487,70 @@ function BusinessHoursCard() {
         </button>
       </div>
 
-      {/* Edit Hours */}
-      {editOpen && (
-        <div className="border-t pt-3 mt-3 flex items-end gap-3 flex-wrap">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Open</label>
-            <input
-              type="time"
-              value={editOpenTime}
-              onChange={(e) => setEditOpenTime(e.target.value)}
-              className="px-2 py-1.5 border border-gray-300 rounded-md text-sm"
-            />
+      {/* Edit Weekly Schedule */}
+      {editOpen && editSchedule && (
+        <div className="border-t pt-3 mt-3">
+          <div className="space-y-2">
+            {/* Reorder Mon-Sun for editing */}
+            {[1, 2, 3, 4, 5, 6, 0].map((dayIdx) => {
+              const day = editSchedule[dayIdx];
+              return (
+                <div key={day.day} className="flex items-center gap-2 flex-wrap">
+                  <span className="w-10 text-sm font-medium text-gray-700 shrink-0">
+                    {day.label.slice(0, 3)}
+                  </span>
+                  <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={day.isOpen}
+                      onChange={(e) => handleDayChange(dayIdx, "isOpen", e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span className={`text-xs w-12 ${day.isOpen ? "text-green-700 font-medium" : "text-gray-400"}`}>
+                      {day.isOpen ? "Open" : "Closed"}
+                    </span>
+                  </label>
+                  {day.isOpen && (
+                    <>
+                      <input
+                        type="time"
+                        value={day.openTime}
+                        onChange={(e) => handleDayChange(dayIdx, "openTime", e.target.value)}
+                        className="px-1.5 py-1 border border-gray-300 rounded text-sm w-28"
+                      />
+                      <span className="text-xs text-gray-400">to</span>
+                      <input
+                        type="time"
+                        value={day.closeTime}
+                        onChange={(e) => handleDayChange(dayIdx, "closeTime", e.target.value)}
+                        className="px-1.5 py-1 border border-gray-300 rounded text-sm w-28"
+                      />
+                      <button
+                        onClick={() => handleCopyToAll(dayIdx)}
+                        className="text-xs text-blue-600 hover:text-blue-800 underline shrink-0"
+                      >
+                        copy to all
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Close</label>
-            <input
-              type="time"
-              value={editCloseTime}
-              onChange={(e) => setEditCloseTime(e.target.value)}
-              className="px-2 py-1.5 border border-gray-300 rounded-md text-sm"
-            />
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={() => void handleSaveSchedule()}
+              className="px-4 py-1.5 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-hover transition-colors"
+            >
+              Save
+            </button>
+            <button
+              onClick={handleEditCancel}
+              className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
           </div>
-          <button
-            onClick={() => void handleSaveHours()}
-            className="px-4 py-1.5 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-hover transition-colors"
-          >
-            Save
-          </button>
-          <span className="text-xs text-gray-400">
-            Currently: {formatTime12(businessHours.openTime)} - {formatTime12(businessHours.closeTime)}
-          </span>
         </div>
       )}
     </div>
